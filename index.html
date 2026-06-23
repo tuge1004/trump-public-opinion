@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>特朗普枪击事件 · 舆情分析报告 | 胡咏仪</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2/dist/echarts-gl.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c1: #911f27;
+      --c2: #fac694;
+      --c3: #fceac8;
+      --c1-light: #b33a40;
+      --c2-light: #fcd4a8;
+      --bg: #fdf8f2;
+      --text: #2c1810;
+      --text-light: #6b4c3b;
+      --card-bg: rgba(255,255,255,0.9);
+      --shadow: 0 8px 32px rgba(145,31,39,0.1);
+      --border-light: rgba(145,31,39,0.1);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    .sidebar {
+      position: fixed; left:0; top:0; width:260px; height:100vh;
+      background: linear-gradient(180deg, var(--c1) 0%, #5a1519 100%);
+      z-index:1000; padding:30px 0; overflow-y:auto;
+      transition: transform 0.3s;
+    }
+    .sidebar-logo { padding:0 24px 30px; border-bottom:1px solid rgba(252,234,200,0.15); margin-bottom:20px; }
+    .sidebar-logo h2 { font-family:'Noto Serif SC',serif; color:var(--c3); font-size:18px; font-weight:700; }
+    .sidebar-logo span { color:var(--c2); font-size:12px; display:block; margin-top:6px; letter-spacing:2px; }
+    .nav-item {
+      display:block; padding:12px 24px; color:rgba(252,234,200,0.7); text-decoration:none;
+      font-size:14px; border-left:3px solid transparent; cursor:pointer; transition:0.3s;
+    }
+    .nav-item:hover,.nav-item.active { color:#fff; background:rgba(255,255,255,0.08); border-left-color:var(--c2); }
+    .nav-item.active { font-weight:500; }
+    .main { margin-left:260px; min-height:100vh; }
+    .section {
+      min-height:100vh; padding:80px 60px; position: relative;
+      overflow-x: hidden;
+    }
+    /* 动画基础类 - 保证即使JS出错内容也可见 */
+    .animate-item {
+      opacity: 1;
+      transform: translateX(0);
+      transition: opacity 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    .animate-right { transform: translateX(0); }
+    .animate-up { transform: translateY(0); }
+    /* 只有进入视口时才添加偏移动画，但如果不执行JS也不会隐藏内容 */
+    .animate-item.animate-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .animate-right.animate-in { transform: translateX(0); }
+    .animate-up.animate-in { transform: translateY(0); }
+    /* 初始偏移（仅在JS正常且视口触发时生效，否则保持可见） */
+    .section.visible .animate-item { animation: slideLeft 0.6s forwards; }
+    @keyframes slideLeft {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title, .section-subtitle, .subsection-title {
+      opacity: 1; transform: translateY(0);
+      transition: all 0.7s ease;
+    }
+    .section.visible .section-title,
+    .section.visible .section-subtitle,
+    .section.visible .subsection-title {
+      opacity: 1; transform: translateY(0);
+    }
+
+    .section-title {
+      font-family:'Noto Serif SC',serif; font-size:36px; font-weight:900;
+      color:var(--c1); margin-bottom:12px; display:inline-block; position:relative;
+    }
+    .section-title::after { content:''; position:absolute; bottom:-6px; left:0; width:60px; height:4px; background:var(--c2); border-radius:2px; }
+    .section-subtitle { font-size:14px; color:var(--text-light); margin-bottom:40px; letter-spacing:1px; margin-top:16px; }
+    .subsection-title { font-family:'Noto Serif SC',serif; font-size:22px; font-weight:700; color:var(--c1); margin:40px 0 20px; padding-left:16px; border-left:4px solid var(--c2); }
+    .content-text { font-size:15px; line-height:2; color:var(--text-light); max-width:900px; margin-bottom:20px; }
+    .analysis-text { background:var(--card-bg); border-radius:16px; padding:28px; margin:24px 0; box-shadow:var(--shadow); border:1px solid var(--border-light); }
+    .analysis-text h4 { color:var(--c1); margin-bottom:12px; font-size:18px; }
+    .analysis-text p { color:var(--text-light); line-height:1.9; margin-bottom:12px; }
+    .highlight-box { background:linear-gradient(135deg, rgba(145,31,39,0.06), rgba(250,198,148,0.1)); border-left:4px solid var(--c2); border-radius:0 12px 12px 0; padding:24px 28px; margin:24px 0; font-size:14px; line-height:1.9; color:var(--text-light); }
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:24px; margin:30px 0; }
+    .card { background:var(--card-bg); border-radius:16px; padding:28px; box-shadow:var(--shadow); border:1px solid var(--border-light); transition:0.3s; text-align:center; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(145,31,39,0.18); }
+    .card-label { font-size:12px; color:var(--c1); font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+    .card-value { font-family:'Noto Serif SC',serif; font-size:36px; font-weight:900; color:var(--c1); }
+    .timeline { display: flex; justify-content: space-between; margin: 40px 0; background: linear-gradient(90deg, var(--c1-light) 0%, var(--c2) 100%); border-radius: 40px; padding: 20px 30px; color: #2c1810; }
+    .timeline-node { text-align: center; flex:1; }
+    .timeline-date { font-weight: 800; font-size: 18px; background: rgba(255,255,240,0.9); display: inline-block; padding: 4px 16px; border-radius: 40px; margin-bottom: 8px; }
+    .timeline-desc { font-size: 13px; font-weight: 500; background: rgba(0,0,0,0.05); border-radius: 20px; padding: 4px 12px; }
+    .chart-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:30px 0; }
+    .chart-container { background:var(--card-bg); border-radius:16px; padding:24px; box-shadow:var(--shadow); border:1px solid var(--border-light); min-height:420px; }
+    .chart-container.full { grid-column:1/-1; min-height:500px; }
+    .chart-title { font-size:15px; font-weight:700; color:var(--c1); margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid rgba(145,31,39,0.1); }
+    .data-table { width:100%; border-collapse:collapse; margin:20px 0; background:var(--card-bg); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); font-size:13px; }
+    .data-table th { background:var(--c1); color:var(--c3); padding:14px 16px; text-align:left; font-weight:600; font-size:12px; }
+    .data-table td { padding:12px 16px; border-bottom:1px solid rgba(145,31,39,0.08); }
+    .rq-box { background:linear-gradient(135deg, var(--c1), var(--c1-light)); border-radius:16px; padding:28px 32px; margin:24px 0; color:#fff; }
+    .rq-label { font-size:12px; color:var(--c2); font-weight:700; letter-spacing:2px; margin-bottom:8px; }
+    /* 封面三层结构 */
+    .cover-section {
+      min-height:100vh;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #911f27;
+      overflow: hidden;
+      padding:0;
+    }
+    .cover-img-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.85;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .cover-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 90%;
+      color: var(--c3);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .cover-title { font-family:'Noto Serif SC',serif; font-size:52px; font-weight:900; color:var(--c3); }
+    .cover-subtitle { font-size:18px; color:var(--c2); margin-bottom:20px; letter-spacing:4px; }
+    .cover-credit { font-size:14px; color:var(--c3); margin-top:30px; letter-spacing:2px; opacity:0.9; }
+    .cover-tag { padding:6px 18px; border:1px solid rgba(252,234,200,0.5); border-radius:20px; color:var(--c3); font-size:12px; transition:0.3s; background: rgba(0,0,0,0.3);}
+    .cover-tag:hover { background:var(--c2); color:#fff; border-color:var(--c2); }
+    /* 事件卡片+视频 */
+    .events-section {
+      padding: 60px 60px 20px 60px;
+      background: var(--bg);
+    }
+    .events-grid {
+      display: flex;
+      gap: 40px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .event-card {
+      flex: 1;
+      min-width: 350px;
+      background: var(--card-bg);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s;
+      border: 1px solid var(--border-light);
+    }
+    .event-card:hover { transform: translateY(-6px); }
+    .event-header {
+      background: var(--c1);
+      color: white;
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .event-body {
+      padding: 20px;
+    }
+    .event-body p {
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-light);
+    }
+    .video-wrapper {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .fallback-link {
+      display: inline-block;
+      margin-top: 12px;
+      background: var(--c1-light);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .fallback-link:hover { background: var(--c1); }
+    /* 典型数据阅读卡片样式 */
+    .data-samples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin: 40px 0;
+    }
+    .sample-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .sample-card:hover { transform: translateY(-4px); }
+    .sample-header {
+      background: var(--c1-light);
+      color: white;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .sample-preview {
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.6;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .sample-full {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background: #fef4e0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .sample-full.show {
+      max-height: 600px;
+      overflow-y: auto;
+      transition: max-height 0.5s ease-in;
+    }
+    .sample-full-inner {
+      padding: 20px;
+      border-top: 1px solid var(--border-light);
+    }
+    .btn-toggle {
+      display: inline-block;
+      background: var(--c1);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      margin: 16px 20px 20px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-toggle:hover { background: var(--c1-light); }
+    .page-nav { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); display:flex; gap:20px; z-index:999; background:rgba(30,20,18,0.85); backdrop-filter:blur(10px); padding:8px 18px; border-radius:40px; border:1px solid rgba(252,234,200,0.2); }
+    .page-nav button { background:transparent; border:none; color:var(--c2); font-size:1.6rem; cursor:pointer; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:0.2s; }
+    .page-nav button:hover { background:rgba(250,198,148,0.15); color:var(--c3); }
+    .footer-credit { text-align:center; margin-top:60px; padding:30px 0 20px; border-top:1px solid var(--border-light); color:var(--text-light); font-size:14px; letter-spacing:1px; }
+    @media (max-width:1024px) {
+      .sidebar{transform:translateX(-100%)} .main{margin-left:0} .section{padding:60px 24px} .chart-row{grid-template-columns:1fr}
+      .events-section { padding: 40px 24px; }
+      .event-card { min-width: 280px; }
+      .data-samples-grid { grid-template-columns: 1fr; }
+    }
+
+/* ===== 滚动进度条 ===== */
+.scroll-progress { position:fixed; top:0; left:260px; right:0; height:3px; z-index:9999; background:transparent; pointer-events:none; }
+.scroll-progress-bar { height:100%; width:0%; background:linear-gradient(90deg, var(--c1), var(--c2)); border-radius:0 2px 2px 0; transition:width 0.1s linear; box-shadow:0 0 10px rgba(145,31,39,0.5); }
+
+/* ===== 粒子画布 ===== */
+#particleCanvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+/* ===== 数字计数动画 ===== */
+.count-up { display:inline-block; }
+
+/* ===== 卡片3D倾斜 ===== */
+.card-3d { transition:transform 0.3s ease, box-shadow 0.3s ease; transform-style:preserve-3d; }
+.card-3d:hover { box-shadow:0 20px 60px rgba(145,31,39,0.25); }
+
+/* ===== 涟漪按钮 ===== */
+.ripple-btn { position:relative; overflow:hidden; }
+.ripple-btn .ripple { position:absolute; border-radius:50%; background:rgba(255,255,255,0.4); transform:scale(0); animation:rippleAnim 0.6s ease-out; pointer-events:none; }
+@keyframes rippleAnim { to { transform:scale(4); opacity:0; } }
+
+/* ===== 返回顶部 ===== */
+.back-to-top { position:fixed; bottom:90px; right:30px; width:48px; height:48px; background:var(--c1); color:var(--c3); border:none; border-radius:50%; font-size:20px; cursor:pointer; z-index:998; opacity:0; transform:translateY(20px); transition:all 0.3s ease; box-shadow:0 4px 16px rgba(145,31,39,0.3); display:flex; align-items:center; justify-content:center; }
+.back-to-top.visible { opacity:1; transform:translateY(0); }
+.back-to-top:hover { background:var(--c1-light); transform:translateY(-3px); box-shadow:0 6px 24px rgba(145,31,39,0.4); }
+
+/* ===== 主题切换 ===== */
+.theme-toggle { position:fixed; top:20px; right:20px; width:44px; height:44px; background:var(--card-bg); border:1px solid var(--border-light); border-radius:50%; cursor:pointer; z-index:1001; display:flex; align-items:center; justify-content:center; font-size:20px; transition:all 0.3s ease; box-shadow:var(--shadow); }
+.theme-toggle:hover { transform:rotate(30deg) scale(1.1); }
+
+/* ===== 暗色主题 ===== */
+body.dark-mode { --bg:#1a1210; --text:#f0e6dc; --text-light:#b8a090; --card-bg:rgba(40,28,24,0.95); --shadow:0 8px 32px rgba(0,0,0,0.4); --border-light:rgba(250,198,148,0.15); }
+body.dark-mode .sidebar { background:linear-gradient(180deg, #1a0a0c 0%, #0d0506 100%); }
+body.dark-mode .data-table th { background:#2a1518; }
+body.dark-mode .data-table td { border-bottom-color:rgba(250,198,148,0.08); color:var(--text-light); }
+body.dark-mode .highlight-box { background:linear-gradient(135deg, rgba(145,31,39,0.12), rgba(250,198,148,0.08)); }
+body.dark-mode .sample-full { background:#2a1a14; }
+body.dark-mode .scroll-progress-bar { box-shadow:0 0 12px rgba(250,198,148,0.5); }
+
+/* ===== 图表轮播 ===== */
+.carousel-wrapper { position: relative; overflow: hidden; }
+.carousel-slide { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.carousel-slide.hidden { opacity: 0; transform: translateX(50px); pointer-events: none; position: absolute; }
+.carousel-btn:hover { background: var(--c1-light) !important; transform: translateY(-2px); }
+
+/* ===== 章节切换3D翻页过渡 ===== */
+.section-flip-enter { animation: sectionFlipIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes sectionFlipIn {
+  0% { opacity: 0; transform: perspective(1000px) rotateY(-15deg) translateX(-100px); }
+  100% { opacity: 1; transform: perspective(1000px) rotateY(0) translateX(0); }
+}
+.section-fade-enter { animation: sectionFadeIn 0.6s ease forwards; }
+@keyframes sectionFadeIn {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 汉堡菜单 ===== */
+.hamburger { display:none; position:fixed; top:15px; left:15px; z-index:1002; width:40px; height:40px; background:var(--c1); border:none; border-radius:8px; cursor:pointer; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+.hamburger span { display:block; width:22px; height:2px; background:var(--c3); transition:all 0.3s; border-radius:2px; }
+.hamburger.active span:nth-child(1) { transform:rotate(45deg) translate(5px,5px); }
+.hamburger.active span:nth-child(2) { opacity:0; }
+.hamburger.active span:nth-child(3) { transform:rotate(-45deg) translate(5px,-5px); }
+.sidebar-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
+.sidebar-overlay.active { display:block; }
+@media (max-width:1024px) { .hamburger{display:flex} .sidebar.open{transform:translateX(0)} .scroll-progress{left:0} .theme-toggle{right:15px;top:15px} }
+
+/* ===== 打字机光标 ===== */
+.typewriter-cursor { display:inline-block; width:3px; height:1em; background:var(--c2); margin-left:4px; animation:blink 0.8s infinite; vertical-align:text-bottom; }
+@keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+
+/* ===== 时间线节点动画 ===== */
+.timeline-node { opacity:0; transform:translateY(20px); transition:all 0.6s cubic-bezier(0.2,0.9,0.4,1.1); }
+.section.visible .timeline-node { opacity:1; transform:translateY(0); }
+.section.visible .timeline-node:nth-child(1){transition-delay:0.1s}
+.section.visible .timeline-node:nth-child(2){transition-delay:0.25s}
+.section.visible .timeline-node:nth-child(3){transition-delay:0.4s}
+.section.visible .timeline-node:nth-child(4){transition-delay:0.55s}
+
+/* ===== 浮动标签 ===== */
+.floating-tag { animation:floatTag 3s ease-in-out infinite; }
+.floating-tag:nth-child(2){animation-delay:0.5s}
+.floating-tag:nth-child(3){animation-delay:1s}
+.floating-tag:nth-child(4){animation-delay:1.5s}
+.floating-tag:nth-child(5){animation-delay:2s}
+.floating-tag:nth-child(6){animation-delay:2.5s}
+@keyframes floatTag { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+/* ===== 图表容器加载动画 ===== */
+.chart-container { position:relative; overflow:hidden; }
+.chart-container::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(250,198,148,0.08), transparent); animation:chartShimmer 2s ease-in-out; z-index:1; pointer-events:none; }
+@keyframes chartShimmer { 0%{left:-100%} 100%{left:100%} }
+
+/* ===== 滚动提示箭头 ===== */
+.scroll-hint { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); z-index:3; animation:scrollBounce 2s ease-in-out infinite; cursor:pointer; }
+.scroll-hint span { display:block; width:24px; height:24px; border-right:2px solid var(--c2); border-bottom:2px solid var(--c2); transform:rotate(45deg); opacity:0.7; }
+@keyframes scrollBounce { 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.7} 50%{transform:translateX(-50%) translateY(10px);opacity:1} }
+
+/* ===== 卡片入场动画增强 ===== */
+.card-grid .card, .data-samples-grid .sample-card, .events-grid .event-card { opacity:0; transform:translateY(30px) scale(0.95); transition:opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.9,0.4,1.1), box-shadow 0.3s ease; }
+.section.visible .card-grid .card, .section.visible .data-samples-grid .sample-card, .events-section.visible .events-grid .event-card { opacity:1; transform:translateY(0) scale(1); }
+.section.visible .card-grid .card:nth-child(1), .section.visible .data-samples-grid .sample-card:nth-child(1), .events-section.visible .events-grid .event-card:nth-child(1){transition-delay:0.1s}
+.section.visible .card-grid .card:nth-child(2), .section.visible .data-samples-grid .sample-card:nth-child(2), .events-section.visible .events-grid .event-card:nth-child(2){transition-delay:0.2s}
+.section.visible .card-grid .card:nth-child(3), .section.visible .data-samples-grid .sample-card:nth-child(3), .events-section.visible .events-grid .event-card:nth-child(3){transition-delay:0.3s}
+.section.visible .card-grid .card:nth-child(4), .section.visible .data-samples-grid .sample-card:nth-child(4), .events-section.visible .events-grid .event-card:nth-child(4){transition-delay:0.4s}
+.section.visible .card-grid .card:nth-child(5), .section.visible .data-samples-grid .sample-card:nth-child(5), .events-section.visible .events-grid .event-card:nth-child(5){transition-delay:0.5s}
+.section.visible .card-grid .card:nth-child(6), .section.visible .data-samples-grid .sample-card:nth-child(6), .events-section.visible .events-grid .event-card:nth-child(6){transition-delay:0.6s}
+
+/* ===== RQ卡片脉冲边框 ===== */
+.rq-box { position:relative; overflow:hidden; }
+.rq-box::after { content:''; position:absolute; top:-2px; left:-2px; right:-2px; bottom:-2px; background:linear-gradient(45deg, var(--c2), transparent, var(--c2), transparent); background-size:400% 400%; border-radius:18px; z-index:-1; opacity:0; transition:opacity 0.3s; }
+.rq-box:hover::after { opacity:1; animation:borderGlow 3s linear infinite; }
+@keyframes borderGlow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+/* ===== 导航活跃指示器 ===== */
+.nav-item { position:relative; }
+.nav-item::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:0; height:60%; background:var(--c2); border-radius:0 2px 2px 0; transition:width 0.3s ease; }
+.nav-item.active::before { width:3px; }
+
+/* ===== 表格行悬停 ===== */
+.data-table tbody tr { transition:background 0.2s ease; }
+.data-table tbody tr:hover { background:rgba(145,31,39,0.05); }
+body.dark-mode .data-table tbody tr:hover { background:rgba(250,198,148,0.08); }
+    /* ===== 解读面板切换 ===== */
+    .insight-panel {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, padding 0.5s ease;
+      opacity: 0; padding: 0 28px;
+      background: var(--card-bg); border-radius: 16px;
+      box-shadow: var(--shadow); border: 1px solid var(--border-light);
+      margin: 0;
+    }
+    .insight-panel.open {
+      max-height: 2000px; opacity: 1; padding: 28px;
+      margin: 0;
+    }
+    .insight-panel h4 { color: var(--c1); margin-bottom: 12px; font-size: 18px; }
+    .insight-panel p { color: var(--text-light); line-height: 1.9; margin-bottom: 12px; }
+    .insight-toggle {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--c1), var(--c1-light));
+      color: var(--c3); border: none; padding: 12px 28px;
+      border-radius: 40px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin: 20px 0; transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(145,31,39,0.2);
+    }
+    .insight-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(145,31,39,0.35);
+    }
+    .insight-toggle .arrow {
+      display: inline-block; transition: transform 0.4s ease;
+      font-size: 12px;
+    }
+    .insight-toggle.active .arrow {
+      transform: rotate(180deg);
+    }
+    .insight-toggle.active {
+      background: linear-gradient(135deg, var(--c1-light), var(--c2));
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><h2>舆情分析报告</h2><span>PUBLIC OPINION</span></div>
+  <a class="nav-item active" data-target="cover">封面</a>
+  <a class="nav-item" data-target="events">事件回顾</a>
+  <a class="nav-item" data-target="intro">引言</a>
+  <a class="nav-item" data-target="data">数据预处理</a>
+  <a class="nav-item" data-target="heat">热度分析</a>
+  <a class="nav-item" data-target="data-samples">典型数据阅读</a>
+  <a class="nav-item" data-target="topic">主题建模</a>
+  <a class="nav-item" data-target="emotion">情感分析</a>
+  <a class="nav-item" data-target="weak">弱信号识别</a>
+  <a class="nav-item" data-target="vad">NRC-VAD量化</a>
+  <a class="nav-item" data-target="attitude">态度测量</a>
+  <a class="nav-item" data-target="network">社会网络</a>
+  <a class="nav-item" data-target="simulation">舆论仿真</a>
+  <a class="nav-item" data-target="language">语言特征</a>
+  <a class="nav-item" data-target="conclusion">结论</a>
+</nav>
+<div class="main" id="mainContent">
+
+  <!-- 封面 -->
+  <section class="cover-section" id="cover" style="opacity:1;transform:none;">
+    <img class="cover-img-layer" src="https://i.ibb.co/j9k7gHdw/image.png" alt="白色卡通特朗普" loading="lazy">
+    <canvas id="particleCanvas"></canvas>
+    <div class="cover-content">
+      <div class="cover-subtitle">PUBLIC OPINION ANALYSIS</div>
+      <h1 class="cover-title">特朗普枪击事件<br>舆情分析报告</h1>
+      <div style="width:80px;height:3px;background:var(--c2);margin:20px auto;"></div>
+      <div class="cover-credit">制作人：胡咏仪</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:30px;flex-wrap:wrap;">
+        <span class="cover-tag floating-tag">热度分析</span><span class="cover-tag floating-tag">BERTopic</span><span class="cover-tag floating-tag">Plutchik</span><span class="cover-tag floating-tag">弱信号</span><span class="cover-tag floating-tag">VAD</span><span class="cover-tag floating-tag">Word2Vec</span>
+      </div>
+      <div class="scroll-hint" onclick="document.getElementById('events').scrollIntoView({behavior:'smooth'})"><span></span></div>
+    </div>
+  </section>
+
+  <!-- 事件回顾 -->
+  <div class="events-section" id="events">
+    <div class="events-grid">
+      <div class="event-card">
+        <div class="event-header">📅 2024年7月13日 · 宾州巴特勒竞选集会枪击</div>
+        <div class="event-body">
+          <p>🔹 特朗普右耳被子弹擦伤，现场1死2重伤，枪手被当场击毙。<br>
+          🔹 特朗普在特勤局护卫下高举拳头，高喊“Fight!”的画面传遍全球，被支持者塑造为“不屈斗士”。<br>
+          🔹 FBI定性为“暗杀未遂”，事件极大影响2024大选走势，特朗普民调短期内上升。<br>
+          🔹 共和党全国代表大会因此增添“团结抗敌”氛围，拜登随后宣布退选。</p>
+          <div class="video-wrapper">
+            <iframe src="//player.bilibili.com/player.html?aid=1356085610&page=1&high_quality=1&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+          </div>
+          <a class="fallback-link" href="https://www.bilibili.com/video/av1356085610/" target="_blank" rel="noopener noreferrer">📺 如无法播放，请点击此处打开原视频</a>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-header">📅 2026年4月25日 · 白宫记者晚宴枪击</div>
+        <div class="event-body">
+          <p>🔹 袭击者Allen Cole持枪闯入晚宴现场开枪，多人受伤，特朗普紧急撤离。<br>
+          🔹 事件引发对白宫特勤局安保体系的全面质疑，舆论焦点从“英雄叙事”转向“制度失守”。<br>
+          🔹 社交媒体迅速涌现“阴谋论”，质疑事件真实性或指责政府掩盖真相。<br>
+          🔹 此时特朗普已为在任总统，面临弹劾调查和中期选举压力，事件进一步加剧政治危机。</p>
+          <div class="video-wrapper">
+            <iframe src="//player.bilibili.com/player.html?bvid=BV1BhovBMEJt&page=1&high_quality=1&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+          </div>
+          <a class="fallback-link" href="https://www.bilibili.com/video/BV1BhovBMEJt/" target="_blank" rel="noopener noreferrer">📺 如无法播放，请点击此处打开原视频</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引言 -->
+  <section class="section" id="intro">
+    <h2 class="section-title">引言</h2>
+    <p class="section-subtitle">两次枪击事件的深度背景、核心研究问题与多层次分析框架</p>
+    <div class="timeline animate-item animate-up delay-1">
+      <div class="timeline-node"><div class="timeline-date">2024.07.13</div><div class="timeline-desc">宾州巴特勒竞选集会枪击</div></div>
+      <div class="timeline-node"><div class="timeline-date">2024.07-08</div><div class="timeline-desc">RNC大会 · 拜登退选</div></div>
+      <div class="timeline-node"><div class="timeline-date">2026.04.25</div><div class="timeline-desc">白宫记者晚宴枪击</div></div>
+      <div class="timeline-node"><div class="timeline-date">2026.04-05</div><div class="timeline-desc">安保问责 · 阴谋论发酵</div></div>
+    </div>
+    <div class="subsection-title animate-item delay-1">事件深度剖析</div>
+    <div class="two-col-img animate-item animate-up delay-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+      <img src="https://i.ibb.co/mrNjtvzn/image.png" alt="特朗普真实照片1" loading="lazy" style="width:100%; border-radius:20px;">
+      <img src="https://i.ibb.co/G3p4zj9D/2.png" alt="特朗普真实照片2" loading="lazy" style="width:100%; border-radius:20px;">
+    </div>
+    <div class="highlight-box animate-item delay-3"><em>第一次枪击事件（2024.7.13）</em>发生在宾夕法尼亚州巴特勒的竞选集会上。当时特朗普作为共和党推定候选人，正在为重返白宫造势。枪击导致特朗普右耳被击穿，现场一名观众死亡、两人重伤。特朗普在特勤局掩护下高举拳头的画面瞬间传遍全球，被支持者塑造成“不屈斗士”的象征，也引发了关于政治暴力和选举安全的激烈讨论。联邦调查局将其定性为“暗杀未遂”，随后披露枪手为一名20岁白人男性，政治动机复杂。此次事件极大影响了2024年大选走向，特朗普的民调支持率在短期内出现上升，共和党全国代表大会也因此增添了浓厚的“团结抗敌”氛围。</div>
+    <div class="highlight-box animate-item animate-right delay-3"><em>第二次枪击事件（2026.4.25/26）</em>发生在华盛顿白宫记者晚宴期间。此时特朗普已再次就任美国总统，正面临国会弹劾调查和中期选举压力。袭击者Allen Cole持枪闯入晚宴现场并开枪，导致多人受伤。该事件迅速引发对白宫特勤局安保系统的全面质疑，舆论焦点从“英雄叙事”转向“制度失守”。此外，社交媒体上迅速涌现“阴谋论”，质疑事件真实性或指责政府掩盖真相。两起事件间隔22个月，特朗普的政治身份、事发场景和舆论语境均已发生根本性变化——从“挑战者”变为“在任总统”，从“户外集会”变为“核心安保区域”，从“大选冲刺”变为“弹劾危机”。这种对照为本研究提供了独一无二的比较分析素材。</div>
+    <div class="card-grid animate-item animate-up delay-4">
+      <div class="card card-3d"><div class="card-label">2024年</div><div class="card-value" style="font-size:20px;">竞选集会·巴特勒</div><div class="content-text">角色：竞选挑战者；场景：露天集会；语境：大选冲刺；核心叙事：受害者—英雄</div></div>
+      <div class="card card-3d"><div class="card-label">2026年</div><div class="card-value" style="font-size:20px;">白宫晚宴·华盛顿</div><div class="content-text">角色：在任总统；场景：高规格宴会；语境：弹劾危机；核心叙事：制度失责—阴谋论</div></div>
+      <div class="card card-3d" style="text-align:center"><div class="card-label">时间跨度</div><div class="card-value count-up" data-target="22" data-suffix="个月">0</div><div class="content-text">政治身份、事发场景、舆论语境、核心叙事四重对照，构成完整的演化轨迹</div></div>
+    </div>
+    <div class="subsection-title animate-item delay-1">核心研究问题</div>
+    <div class="rq-box animate-item delay-2"><div class="rq-label">RQ1 时序模式差异</div><div class="rq-text">新闻媒体与社交媒体在两次枪击事件中的热度节奏呈现怎样的差异？2026年事件的舆论生命周期是否较2024年呈现显著的衰减趋势？通过日粒度热度曲线和平台对比，回答第二次袭击的“新闻价值”是否因重复性而降低。</div></div>
+    <div class="rq-box animate-item delay-3"><div class="rq-label">RQ2 议题框架迁移</div><div class="rq-text">两次事件中，新闻与社交媒体围绕特朗普所建构的核心议题发生了怎样的转移？从2024年的“竞选集会—枪击—英雄叙事”到2026年的“白宫安保—制度问责—阴谋论”，舆论焦点的迁移是否标志着特朗普公众形象从“受害者”向“责任者”的根本转变？</div></div>
+    <div class="rq-box animate-item delay-4"><div class="rq-label">RQ3 情感与态度演化</div><div class="rq-text">在两次事件之间，围绕特朗普的公众情绪基调与语义态度产生了怎样的结构性变化？是否存在“信任衰减、厌恶上升、焦虑扩散”的情感漂移趋势？社交媒体是否承担了情绪放大器的作用？</div></div>
+    <div class="rq-box animate-item delay-5"><div class="rq-label">RQ4 弱信号与风险预警</div><div class="rq-text">在主流叙事之外，是否存在低频但具有高风险潜力的“弱信号”？例如阴谋论关键词、边缘话语簇等，这些信号能否为舆情风险治理提供早期预警？</div></div>
+  </section>
+
+  <!-- 数据预处理 -->
+  <section class="section" id="data">
+    <h2 class="section-title">数据预处理</h2>
+    <p class="section-subtitle">多源数据采集、清洗流程与基本统计特征</p>
+    <div class="card-grid animate-item animate-up" style="margin-top:0;">
+      <div class="card card-3d"><div class="card-label">2024新闻</div><div class="card-value count-up" data-target="2481">0</div><div class="content-text">有效样本 · 平均字符4,859</div></div>
+      <div class="card card-3d"><div class="card-label">2026新闻</div><div class="card-value count-up" data-target="1152">0</div><div class="content-text">有效样本 · 平均字符5,286</div></div>
+      <div class="card card-3d"><div class="card-label">2024 X</div><div class="card-value count-up" data-target="31974">0</div><div class="content-text">有效样本 · 平均字符168</div></div>
+      <div class="card card-3d"><div class="card-label">2026 X</div><div class="card-value count-up" data-target="409">0</div><div class="content-text">有效样本 · 平均字符1,036</div></div>
+    </div>
+    <div class="analysis-text animate-item animate-up"><h4>🔍 数据预处理详细解读</h4><p>本研究采集了2024年7月（第一次枪击）和2026年4月（第二次枪击）期间，来自新闻媒体（主流报刊、通讯社、新闻网站）和社交媒体平台X（原Twitter）的公开文本数据。经过严格去重、空值过滤、日期标准化和编码一致性校验后，最终获得四个有效数据集：2024新闻2,481条、2026新闻1,152条、2024 X平台31,974条、2026 X平台409条。从数量上看，2026年新闻样本较2024年减少约53.6%，而X平台样本更是骤降98.7%（从3.2万条降至409条）。这一显著差异首先与事件本身的“新颖性衰减”有关：第一次枪击属于“黑天鹅事件”，全球媒体密集报道；第二次枪击发生在美国国内政治议程中，虽然仍具新闻价值，但规模和持续性明显减弱。其次，X平台在2024年经历了算法调整和用户迁移，样本量的巨大差异也反映了平台活跃度的变化。从文本长度来看，新闻文本平均字符数在4,800-5,300之间，符合深度报道的体裁特征；而X平台2024年平均字符仅168，体现了社交媒体的碎片化、即时情绪表达特点。值得注意的是，2026年X平台平均字符数上升至1,036，这主要是因为该年度样本量较小且包含少量长帖（如阴谋论长文、政治声明等），拉高了均值。总体而言，四个数据集在体量、体裁和时效性上各具特点，为跨年、跨平台比较分析提供了坚实的基础。</p></div>
+    <div class="image-box animate-item animate-up delay-2" style="text-align:center; margin:30px 0;">
+      <img src="https://i.ibb.co/qvmxKtj/2.png" alt="特朗普黑白肖像" loading="lazy" style="max-width:100%; border-radius:20px;">
+    </div>
+    <table class="data-table animate-item animate-up delay-3">
+      <tr><th>数据集</th><th>有效样本</th><th>总字符</th><th>平均字符</th><th>覆盖率(事件后7天)</th> </tr>
+      <tr><td>2024新闻</td><td>2,481</td><td>12,055,444</td><td>4,859.1</td><td>94%</td>  </tr>
+      <tr><td>2026新闻</td><td>1,152</td><td>6,089,421</td><td>5,286.0</td><td>89%</td>  </tr>
+      <tr><td>2024 X</td><td>31,974</td><td>5,362,954</td><td>167.7</td><td>92%</td>  </tr>
+      <tr><td>2026 X</td><td>409</td><td>423,545</td><td>1,035.6</td><td>78%</td>  </tr>
+    </table>
+  </section>
+
+  <!-- 热度分析 -->
+  <section class="section" id="heat">
+    <h2 class="section-title">热度分析</h2>
+    <p class="section-subtitle">各信源独立热度曲线 · 关键事件标注（鼠标悬停显示）</p>
+    <div class="chart-container animate-item animate-up" style="margin-bottom:30px;">
+      <div class="chart-title">📰 2024年新闻媒体热度序列</div>
+      <div id="chartHeat2024N" style="width:100%;height:400px;"></div>
+    </div>
+    <div class="chart-container animate-item animate-up delay-1" style="margin-bottom:30px;">
+      <div class="chart-title">📰 2026年新闻媒体热度序列</div>
+      <div id="chartHeat2026N" style="width:100%;height:400px;"></div>
+    </div>
+    <div class="chart-container animate-item animate-up delay-2" style="margin-bottom:30px;">
+      <div class="chart-title">🐦 2024年X平台热度序列</div>
+      <div id="chartHeat2024X" style="width:100%;height:400px;"></div>
+    </div>
+    <div class="chart-container animate-item animate-up delay-3" style="margin-bottom:30px;">
+      <div class="chart-title">🐦 2026年X平台热度序列</div>
+      <div id="chartHeat2026X" style="width:100%;height:400px;"></div>
+    </div>
+    <button class="insight-toggle ripple-btn" data-target="insightHeat"><span class="arrow">▼</span> 📊 查看热度分析深度解读</button>
+    <div class="insight-panel" id="insightHeat"><h4>📊 热度分析深度解读</h4><p><strong>2024年新闻媒体：</strong>事件发生当日（D1）即达182条，次日（D2）迅速冲至峰值592条，随后呈现典型的指数衰减。图中橙色圆点标注了多个关键节点。<br>
+    <strong>2026年新闻媒体：</strong>峰值331条（D3），较前次下降44%。<br>
+    <strong>2024年X平台：</strong>热度高峰滞后约10天，与RNC大会和拜登退选高度重叠。<br>
+    <strong>2026年X平台：</strong>恢复即时响应，D3峰值132条，热度规模骤降。<br>
+    <strong>鼠标移动到橙色圆点上即可查看详细事件描述（无边框，淡红色加粗斜体，米色背景，多行自动换行）。</strong></p></div>
+    <!-- 热度图表轮播控制 -->
+    <div style="text-align:center; margin-top:30px;">
+      <button class="ripple-btn carousel-btn" data-carousel="heat" data-dir="prev" style="background:var(--c1); color:var(--c3); border:none; padding:10px 24px; border-radius:40px; cursor:pointer; font-size:14px; margin:0 8px; transition:all 0.3s;">◀ 上一组</button>
+      <span id="heatCarouselIndicator" style="color:var(--text-light); font-size:14px; margin:0 16px;">1 / 2</span>
+      <button class="ripple-btn carousel-btn" data-carousel="heat" data-dir="next" style="background:var(--c1); color:var(--c3); border:none; padding:10px 24px; border-radius:40px; cursor:pointer; font-size:14px; margin:0 8px; transition:all 0.3s;">下一组 ▶</button>
+    </div>
+  </section>
+
+  <!-- 典型数据阅读板块 -->
+  <section class="section" id="data-samples">
+    <h2 class="section-title">典型数据阅读</h2>
+    <p class="section-subtitle">点击按钮展开查看新闻与社交媒体原文片段</p>
+    <div class="data-samples-grid animate-item animate-up">
+      <!-- 样本1：2026 CNN新闻 -->
+      <div class="sample-card">
+        <div class="sample-header">📰 2026年 CNN 新闻 · 白宫记者晚宴重开争议</div>
+        <div class="sample-preview">
+          “In the immediate aftermath of last week’s shooting outside the White House Correspondents’ Dinner, there was widespread skepticism about rescheduling it anytime soon. But attitudes have shifted in recent days...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample1">📄 查看原文</button>
+        <div id="sample1" class="sample-full">
+          <div class="sample-full-inner">
+            Momentum builds to reschedule White House Correspondents’ Dinner after shooting. “In the immediate aftermath of last week’s shooting outside the White House Correspondents’ Dinner, there was widespread skepticism about rescheduling it anytime soon. But attitudes have shifted in recent days, and the consensus is now that the dinner — which doubles as an awards ceremony and fundraiser — should be hosted again on principle, several White House correspondents told CNN. The White House Correspondents’ Association board is “working through options” for a “rescheduled event,” this year’s president of the association, Weijia Jiang of CBS News, told members on Friday. “As of today, we have not made any decisions,” she wrote in a memo obtained by CNN. “However, I am committed to ensuring our scholars and award winners receive the recognition that is rightfully theirs, and that an attack on free speech does not cancel our annual celebration of free speech and the other freedoms protected by the First Amendment.” Numerous journalism organizations have reached out to Jiang to offer assistance. The April 25 shooting incident forced organizers to postpone the annual dinner...”
+          </div>
+        </div>
+      </div>
+      <!-- 样本2：2026 X推文（Eric Daugherty / Elon Musk） -->
+      <div class="sample-card">
+        <div class="sample-header">🐦 2026年 X 推文 · Elon Musk 评论</div>
+        <div class="sample-preview">
+          “🚨 JUST IN: Elon Musk says it PERFECTLY after tonight’s shooting at the WHCA dinner featuring President Trump — ‘They are willing to die to kill the democratically elected president.’...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample2">📄 查看原文</button>
+        <div id="sample2" class="sample-full">
+          <div class="sample-full-inner">
+            “🚨 JUST IN: Elon Musk says it PERFECTLY after tonight’s shooting at the WHCA dinner featuring President Trump<br><br>“They are willing to die to kill the democratically elected president.”<br><br>He’s right.<br><br>THIS HAS TO END.<br><br>HOW MANY ATTEMPTS until the left calls it out for what it is!?”<br><br>—— Eric Daugherty (@EricLDaugh) April 26, 2026
+          </div>
+        </div>
+      </div>
+      <!-- 样本3：2024 X推文（阴谋论质疑） -->
+      <div class="sample-card">
+        <div class="sample-header">🐦 2024年 X 推文 · “自导自演”阴谋论</div>
+        <div class="sample-preview">
+          “I honestly cannot fathom these staged claims. Like there’s a man dead, 3 people injured and the shooter dead too. Am I meant to believe that none of that happened?...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample3">📄 查看原文</button>
+        <div id="sample3" class="sample-full">
+          <div class="sample-full-inner">
+            “I honestly cannot fathom these staged claims. Like there’s a man dead, 3 people injured and the shooter dead too. Am I meant to believe that none of that happened? Am I supposed to gaslight myself or something? Brain rot used to be just for the right wingers”<br><br>—— ThatsSoDerek (@ThatsSoDerek) July 27, 2024
+          </div>
+        </div>
+      </div>
+      <!-- 样本4：2024 CNN新闻（枪手细节） -->
+      <div class="sample-card">
+        <div class="sample-header">📰 2024年 CNN 新闻 · 枪手托马斯·克鲁克斯</div>
+        <div class="sample-preview">
+          “By 3 p.m. on Saturday, Thomas Matthew Crooks was at the security screening area for the Trump rally in Butler County, Pennsylvania. He first aroused suspicion when he passed through the magnetometers carrying a rangefinder...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample4">📄 查看原文</button>
+        <div id="sample4" class="sample-full">
+          <div class="sample-full-inner">
+            “By 3 p.m. on Saturday, Thomas Matthew Crooks was at the security screening area for the Trump rally in Butler County, Pennsylvania. He first aroused suspicion when he passed through the magnetometers carrying a rangefinder, which looks similar to a small pair of binoculars and is used by hunters and target shooters to measure distances when setting up a long-range shot, according to a senior law enforcement official briefed on the investigation. The rangefinder would not have prevented Crooks from getting through the security screening point, but it did attract the attention of security personnel who kept an eye on him until he left the secure area. Investigators are unsure of where Crooks went after he left the screening area but the working theory is that he went to his car to retrieve the rifle. Around the same time witnesses alerted police that Crooks was crawling on the roof, one of the four counter-sniper teams observed Crooks looking at their position through the rangefinder...”
+          </div>
+        </div>
+      </div>
+      <!-- 样本5：2026 X推文 · 参议员Mike Lee -->
+      <div class="sample-card">
+        <div class="sample-header">🐦 2026年 X 推文 · 参议员Mike Lee</div>
+        <div class="sample-preview">
+          “🚨 HOLY CRAP! Sen. Mike Lee GOES OFF saying the Secret Service has been defunded all this time by Dems, after tonight's shooting...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample5">📄 查看原文</button>
+        <div id="sample5" class="sample-full">
+          <div class="sample-full-inner">
+            “🚨 HOLY CRAP! Sen. Mike Lee GOES OFF saying the Secret Service has been defunded all this time by Dems, after tonight's shooting in the vicinity of President Trump<br><br>“Our national security is in peril. The same Secret Service that just saved President Trump’s life has been defunded for more than two months. It’s time to *end* the DHS shutdown—now!”<br><br>NO MORE DELAYS!<br><br>—— Eric Daugherty (@EricLDaugh) April 26, 2026 (quoting Sen. Mike Lee)
+          </div>
+        </div>
+      </div>
+      <!-- 样本6：2026 X推文 · 愤怒反驳 -->
+      <div class="sample-card">
+        <div class="sample-header">🐦 2026年 X 推文 · 愤怒反驳阴谋论</div>
+        <div class="sample-preview">
+          “Scared for Trump. How did someone get a gun inside the building where President Trump was? Somebody needs to answer this right now...”
+        </div>
+        <button class="btn-toggle ripple-btn" data-target="sample6">📄 查看原文</button>
+        <div id="sample6" class="sample-full">
+          <div class="sample-full-inner">
+            “Scared for Trump. How did someone get a gun inside the building where President Trump was?<br><br>Somebody needs to answer this right now.<br><br>President Trump has had attempt after attempt on his life, and we are supposed to just accept that someone was able to get that close with a gun? Absolutely not.<br><br>Secret Service needs to explain it. The FBI needs to explain it. Whoever was in charge of security needs to explain it.<br><br>Because there is no good answer. This should have never happened.<br><br>We need to protect President Trump at all costs.<br><br>And to every person who keeps calling him a “king,” a “dictator,” a “threat to democracy,” and acting like he’s going to put Americans in concentration camps — this is what reckless rhetoric does. You put a target on this man’s back.<br><br>I’m pissed off, and every American should be demanding answers.<br><br>Someone should be held accountable for this White House Correspondents’ Dinner Shooting.”<br><br>—— Terrence K. Williams (@w_terrence) April 26, 2026
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主题建模 -->
+  <section class="section" id="topic">
+    <h2 class="section-title">主题建模</h2>
+    <p class="section-subtitle">基于BERTopic的核心议题提取与跨年迁移路径</p>
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">2024新闻主题气泡图</div><div id="chartTopicBubble2024" style="width:100%;height:400px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">2026新闻主题气泡图</div><div id="chartTopicBubble2026" style="width:100%;height:400px;"></div></div>
+    </div>
+    <div class="chart-container full animate-item animate-up"><div class="chart-title">议题框架迁移 · 桑基图（2024→2026核心议题流动）</div><div id="chartTopicSankey" style="width:100%;height:580px;"></div></div>
+    <button class="insight-toggle ripple-btn" data-target="insightTopic"><span class="arrow">▼</span> 🔄 查看议题框架迁移深度解读</button>
+    <div class="insight-panel" id="insightTopic"><h4>🔄 议题框架迁移深度解读</h4><p>2024年新闻主题集中体现为以“特勤局与枪击核心叙事”为绝对主轴（文档占比36.5%），随后衍生出“共和党全国代表大会（RNC）”、“副总统候选人Vance”、“遇难消防员哀悼”、“马斯克背书”等次级议题。这些议题共同指向一个核心框架：<strong>受害者-领袖-团结</strong>。特朗普被塑造成“死里逃生的斗士”，而共和党内部则利用这一事件强化竞选动员。到了2026年，主题菜单发生了根本性转移：占比最高的“晚宴核心”仅占25.3%，显著低于前一年的主轴占比；同时涌现出“政治暴力与阴谋论讨论”（11.2%）、“Kimmel争议性玩笑”（11.1%）、“白宫宴会厅安全改建”（5.0%）、“英王查尔斯三世访美”（7.2%）、“伊朗军事紧张”（2.6%）等多元议题。这些议题共同建构了一个<strong>责任者-制度失序-风险扩散</strong>的新框架。特朗普从“受害者”滑向“责任人”，舆论焦点转向安保漏洞、政府应对能力以及阴谋论的真假之辩。桑基图清晰地展示了流量迁移路径：2024年的“特勤局核心”大量流向2026年的“晚宴核心”和“宴会厅安防”，而“RNC大会”议题则部分转向“政治暴力”讨论。2024年X平台的核心讨论（高度集中）汇入2026年“情感化反应”和“自导自演阴谋论”两个分支，凸显社交媒体上边缘话语的强化与极化。这一演变标志着特朗普公众形象的“符号断裂”——从“抗争英雄”到“问题所在”。</p></div>
+  </section>
+
+  <!-- 情感分析 -->
+  <section class="section" id="emotion">
+    <h2 class="section-title">情感分析</h2>
+    <p class="section-subtitle">Plutchik八维情绪 · 跨年情感漂移与平台对比</p>
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">2024新闻雷达</div><div id="chartEmo2024N" style="width:100%;height:380px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">2026新闻雷达</div><div id="chartEmo2026N" style="width:100%;height:380px;"></div></div>
+    </div>
+    <div class="chart-container full animate-item animate-up"><div class="chart-title">四数据集情绪堆叠柱状图</div><div id="chartEmoStack" style="width:100%;height:440px;"></div></div>
+    <button class="insight-toggle ripple-btn" data-target="insightEmotion"><span class="arrow">▼</span> 💬 查看情感分析深度解读</button>
+    <div class="insight-panel" id="insightEmotion"><h4>💬 情感分析深度解读</h4><p>基于Plutchik八维情绪模型，我们对四个数据集进行了情感计算。结果显示：<br/><strong>新闻媒体：</strong>2024年新闻呈现出“高期待+高信任”与“适度愤怒”并存的混合形态。期待维度（1.81）和信任维度（1.51）显著高于其他情绪，这与新闻中大量出现的“rally”、“patriot”、“leadership”等词汇相符，反映了事件初期对特朗普个人的同情和对其政治前途的积极预期。到2026年，信任维度大幅下降至1.19（降幅21%），而厌恶维度由0.19翻倍至0.36，恐惧维度也小幅上升。这表明随着时间推移和第二次事件的发生，公众的“同情疲劳”逐渐显现，同时阴谋论话语和安保失败责任讨论引发了更强烈的负面情感。值得注意的是，期待维度依然保持高位（1.89），说明政治文本中“许诺-期待”的情感框架具有高度韧性，即使在负面事件中仍然被频繁激活。<br/><strong>社交媒体：</strong>2024年X平台的情绪绝对值偏低（所有维度均低于0.1），可能与短文本的稀疏性有关；但2026年X平台则呈现出“高期待+高信任”与“愤怒、恐惧、厌恶”同步上升的特点（期待0.34、信任0.34、愤怒0.28、恐惧0.24、厌恶0.13），显示社交媒体成为情绪的两极放大器：一方面支持者表达坚定信任，另一方面反对者或阴谋论者释放强烈的负面情绪。总体而言，跨年情感演变呈现“信任衰减、厌恶上升、焦虑微增”的明确趋势，新闻媒体的情绪结构相对稳定，社交媒体则波动剧烈、极化明显。</p></div>
+  </section>
+
+  <!-- 弱信号识别 -->
+  <section class="section" id="weak">
+    <h2 class="section-title">弱信号识别</h2>
+    <p class="section-subtitle">基于突发性(Z-score)、集中度(CV)和WSS综合分数的异常词检测</p>
+    <div class="chart-container full animate-item animate-up"><div class="chart-title">弱信号气泡图 (X=CV, Y=Z-score, 大小=WSS, 多彩暖色)</div><div id="chartWeakBubble" style="width:100%;height:500px;"></div></div>
+    <button class="insight-toggle ripple-btn" data-target="insightWeak"><span class="arrow">▼</span> ⚠️ 查看弱信号发现与风险预警</button>
+    <div class="insight-panel" id="insightWeak"><h4>⚠️ 弱信号发现与风险预警</h4><p>弱信号分析旨在识别那些总体频率极低（容易被忽视）、但在特定时间窗口内突发性极高且分布集中的词汇，它们是潜在风险或新兴叙事的早期指标。本研究中，我们计算了每个词的变异系数（CV，衡量时间分布集中度）、突发性Z-score（相对于背景期的涨幅）以及综合WSS分数。结果发现：2026年X平台是弱信号最密集的场域，WSS排名前七的词全部来自该数据集。其中，“staged”（WSS=76）、“fake”（74）、“deep state”（68）、“coverup”（62）、“false flag”（59）构成了一个清晰的“阴谋论话语簇”。这些词在总语料中占比不足0.03%，但在事件后72小时内集中爆发，且高度集中在少数激进账号中。这表明一部分用户正在有组织地传播“事件系伪造”或“政府自导自演”的叙事。尽管目前这些声音处于边缘，但考虑到历史上类似阴谋论从边缘向主流的渗透路径（如“桑迪胡克阴谋论”），该弱信号具有极高的预警价值。舆情治理部门应密切监测相关词汇的传播网络和情绪倾向，防范二次谣言风暴。此外，2024年X平台也出现了“crooks”（枪手姓氏）、“butler”（地点）等与事件直接相关的弱信号，但其性质属于信息补充而非阴谋叙事，风险等级较低。总体而言，弱信号分析为我们提供了从“噪声”中捕捉“早期风险”的有效工具。</p></div>
+  </section>
+
+  <!-- VAD 3D -->
+  <section class="section" id="vad">
+    <h2 class="section-title">NRC-VAD弱信号情感量化</h2>
+    <p class="section-subtitle">Valence-Arousal-Dominance三维情感轮廓与平台差异</p>
+    <div class="chart-container full animate-item animate-up"><div class="chart-title">VAD三维散点图 (悬停查看详细数据)</div><div id="chartVAD3D" style="width:100%;height:580px;"></div></div>
+    <button class="insight-toggle ripple-btn" data-target="insightVad"><span class="arrow">▼</span> 📐 查看情感轮廓深度解读</button>
+    <div class="insight-panel" id="insightVad"><h4>📐 情感轮廓深度解读</h4><p>NRC-VAD情感词典从愉悦度（Valence）、唤醒度（Arousal）和支配度（Dominance）三个连续维度刻画情感。我们对弱信号词（高WSS词）进行了VAD量化，结果揭示了重要的跨平台差异：<br/><strong>Valence（愉悦度）：</strong>所有弱信号词的愉悦度均处于极低水平（0.076-0.112之间，远低于0.5的中性点），说明这些词本身带有强烈的负面色彩，与阴谋论、暴力、欺骗等语义场一致。<br/><strong>Arousal（唤醒度）：</strong>新闻媒体的弱信号词（如“ballroom”、“construction”）唤醒度接近于零甚至为负，表明新闻文本在报道相关话题时维持了低唤醒、事实陈述的风格。而X平台上的弱信号词（如“staged”、“fake”）唤醒度集中在0.031-0.051之间，属于中等唤醒水平。这意味着社交媒体在传播弱信号时承担了“情绪放大器”的角色，更容易激发读者的注意力与应激反应。<br/><strong>Dominance（支配度）：</strong>所有弱信号词的支配度都偏低（0.114-0.130），表明这些词汇所描述的情境中，个体处于被控制、无法左右局势的弱势地位。这符合枪击事件中公众对突发暴力的无力感以及阴谋论中“被欺骗”的被动心态。综合VAD三维度，我们发现：仅监测新闻场域的情绪信号会系统性地低估公众的真实应激水平（尤其是唤醒度），而社交媒体所提供的情绪唤醒指标对于早期预警具有不可替代的价值。在危机沟通中，应特别关注社交媒体上高唤醒、负效价的话语簇，它们往往是情绪升级的前兆。</p></div>
+  </section>
+
+  <!-- 态度测量 -->
+  <section class="section" id="attitude">
+    <h2 class="section-title">Word2Vec态度测量</h2>
+    <p class="section-subtitle">语义空间中“特朗普”与正负面词汇的相似度偏斜</p>
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">正负相似度</div><div id="chartAttSim" style="width:100%;height:400px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">净相似度</div><div id="chartAttNet" style="width:100%;height:400px;"></div></div>
+    </div>
+    <button class="insight-toggle ripple-btn" data-target="insightAttitude"><span class="arrow">▼</span> 📏 查看态度测量详细结论</button>
+    <div class="insight-panel" id="insightAttitude"><h4>📏 态度测量详细结论</h4><p>我们采用Word2Vec词向量模型，分别计算了“trump”与一组预定义正向词汇（如“honest, strong, leader, safe, just”）和负向词汇（如“liar, criminal, fraud, insecure, guilty”）的平均余弦相似度，并计算净相似度（正向-负向）。结果显示：<br/>- 所有四个数据集的净相似度均为负值，表明“trump”在语义空间中总体上更倾向于与负面词汇共现。但负向偏斜的程度存在显著差异：2024新闻几乎中性（-0.008），说明在第一次枪击报道中，新闻媒体保持了相对平衡的语义距离；2026新闻边际负向（-0.036），显示第二次报道中负面联想略有增强；2024 X平台呈现显著负向偏斜（-0.136），说明社交媒体用户在第一次事件期间已经大量使用负面词汇讨论特朗普，批评话语集中；2026 X平台由于样本稀疏，净相似度接近零（-0.005），但正向和负向相似度绝对值均异常高（0.759和0.764），提示小样本下向量空间坍缩效应，测量可靠性较低。<br/>总体而言，“特朗普”在两次枪击事件舆论中的语义态度呈现出“负向偏斜是普遍基线，但幅度可控，社交媒体极化程度远高于新闻媒体”的格局。2024年X平台的高负向偏斜与当时大选对手猛烈攻击有关，而2026年新闻媒体净相似度的小幅恶化则印证了“信任衰减、厌恶上升”的情感漂移趋势。这一发现对理解政治人物的舆论韧性具有参考价值。</p></div>
+  </section>
+
+  <!-- 社会网络分析 -->
+  <section class="section" id="network">
+    <h2 class="section-title">社会网络分析</h2>
+    <p class="section-subtitle">语义共现网络 · 节点大小=度中心性，连线粗细=共现权重</p>
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">2024新闻语义网络</div><div id="chartNet2024N" style="width:100%;height:440px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">2026新闻语义网络</div><div id="chartNet2026N" style="width:100%;height:440px;"></div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">2024 X平台语义网络</div><div id="chartNet2024X" style="width:100%;height:440px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">2026 X平台语义网络</div><div id="chartNet2026X" style="width:100%;height:440px;"></div></div>
+    </div>
+    <button class="insight-toggle ripple-btn" data-target="insightNetwork"><span class="arrow">▼</span> 🕸️ 查看网络结构演化深度解读</button>
+    <div class="insight-panel" id="insightNetwork"><h4>🕸️ 网络结构演化深度解读</h4><p>我们基于共现矩阵构建了语义网络，节点大小代表度中心性（共现频率），连线粗细代表共现权重。从2024年新闻网络来看，“trump”的一度邻居以“president”、“rally”、“republican”、“shooting”等政治活动词汇为主，反映了第一次事件中特朗普作为“竞选者”和“受害者”的双重身份。而到了2026年新闻网络，与“trump”高度共现的词完全替换为“white”、“house”、“security”、“dinner”、“allen”等制度、地点和责任人词汇。这一替换精准标记了舆论基调和责任归因的变迁——从“政党动员”转向“危机管理/制度问责”。同时，“president”在四个网络中均稳居前三位共现词，说明无论事件性质如何，特朗普的职衔标签始终是叙事核心。X平台的网络结构相对稀疏，但2024年网络中出现“secret”、“service”、“video”等与特勤局和现场记录相关的词，而2026年网络则出现了“staged”、“fake”、“deep”等阴谋论词汇，进一步印证了弱信号分析中发现的边缘叙事集群。网络密度的变化也值得关注：2024新闻网络密度为0.32，2026年降至0.21，显示议题分散化；X平台网络密度则从0.18降至0.09，反映讨论碎片化和低参与度。这些网络指标的变化为舆论场演化提供了结构层面的证据。</p></div>
+  </section>
+
+  <!-- 舆论动力学仿真 -->
+  <section class="section" id="simulation">
+    <h2 class="section-title">舆论动力学仿真</h2>
+    <p class="section-subtitle">基于Deffuant模型 · 80个个体 · 30个时间步 · 真实热度驱动观点演化</p>
+
+    <!-- 模型参数卡片 -->
+    <div class="card-grid animate-item animate-up" style="margin-top:0;">
+      <div class="card card-3d"><div class="card-label">个体数 N</div><div class="card-value">80</div><div class="content-text">仿真群体规模</div></div>
+      <div class="card card-3d"><div class="card-label">时间步 T</div><div class="card-value">30</div><div class="content-text">事件后相对天数</div></div>
+      <div class="card card-3d"><div class="card-label">置信边界 ε</div><div class="card-value">0.25</div><div class="content-text">观点差异阈值</div></div>
+      <div class="card card-3d"><div class="card-label">收敛速率 μ</div><div class="card-value">0.4</div><div class="content-text">交互接近程度</div></div>
+      <div class="card card-3d"><div class="card-label">最大热度</div><div class="card-value">132</div><div class="content-text">归一化基准值</div></div>
+    </div>
+
+    <!-- 主图表：观点演化 + 热度双轴图 -->
+    <div class="chart-container full animate-item animate-up" style="margin-bottom:30px;">
+      <div class="chart-title">📊 舆论立场演化 + 事件热度驱动（双轴图）</div>
+      <div id="chartSimulation" style="width:100%;height:500px;"></div>
+    </div>
+
+    <!-- 文本示例展示区 -->
+    <div class="highlight-box animate-item animate-up" id="simSampleBox" style="margin-bottom:30px;">
+      <div style="font-weight:700; color:var(--c1); font-size:13px; margin-bottom:8px;">📌 当前时间步文本示例</div>
+      <div id="simSampleText" style="font-size:15px; color:var(--text); line-height:1.6;">悬停或点击图表上的数据点查看对应文本</div>
+    </div>
+
+    <!-- 仿真数据表格 -->
+    <div class="chart-container full animate-item animate-up" style="padding:20px; max-height:500px; overflow-y:auto;">
+      <div class="chart-title">📋 仿真时间序列数据表</div>
+      <table class="data-table" style="font-size:12px;">
+        <tr><th>时间步</th><th>标签</th><th>平均观点</th><th>热度</th><th>归一化强度</th><th>示例文本（摘要）</th></tr>
+        <tr><td>1</td><td>D1</td><td>48.64</td><td>41</td><td>0.311</td><td>FBI investigates assassination attempt on Trump.</td></tr>
+        <tr><td>2</td><td>D2</td><td>49.56</td><td>58</td><td>0.439</td><td>Witnesses describe chaotic scene at rally.</td></tr>
+        <tr><td>3</td><td>D3</td><td>50.75</td><td>132</td><td>1.000</td><td>Shooting at White House Correspondents' Dinner...</td></tr>
+        <tr><td>4</td><td>D4</td><td>53.49</td><td>88</td><td>0.667</td><td>Secret Service under scrutiny...</td></tr>
+        <tr><td>5</td><td>D5</td><td>55.03</td><td>50</td><td>0.379</td><td>Allen Cole identified as shooter...</td></tr>
+        <tr><td>6</td><td>D6</td><td>55.87</td><td>35</td><td>0.265</td><td>OMG this is insane!!! #Trump #Shooting</td></tr>
+        <tr><td>7</td><td>D7</td><td>56.45</td><td>28</td><td>0.212</td><td>I can't believe this. So scary! #MAGA</td></tr>
+        <tr><td>8</td><td>D8</td><td>56.90</td><td>18</td><td>0.136</td><td>Thoughts and prayers for Trump. 🇺🇸</td></tr>
+        <tr><td>9</td><td>D9</td><td>57.20</td><td>6</td><td>0.045</td><td>Staged? Fake? Deep state? Let's discuss.</td></tr>
+        <tr><td>10</td><td>D10</td><td>57.29</td><td>0</td><td>0.000</td><td>This is a false flag operation. #WakeUp</td></tr>
+        <tr><td>11~30</td><td>D11~D30</td><td>57.29</td><td>0</td><td>0.000</td><td>观点趋于稳定，无新事件冲击</td></tr>
+      </table>
+    </div>
+
+    <!-- 解读按钮 -->
+    <button class="insight-toggle ripple-btn" data-target="insightSimulation"><span class="arrow">▼</span> 🔬 查看仿真结果深度解读</button>
+    <div class="insight-panel" id="insightSimulation">
+      <h4>🔬 舆论动力学仿真深度解读</h4>
+      <p><strong>舆论演化轨迹：</strong>群体观点从初始约48.6（偏中性）逐步上升至57.3（偏向一方），上升主要发生在D1~D5，与热度高峰期（D3达到峰值132）直接相关。之后观点趋于稳定，说明事件冲击后群体进入新的均衡状态。</p>
+      <p><strong>事件驱动效果：</strong>热度峰值（D3）对应事件冲击最强，观点在接下来几天继续攀升，表明舆论具有"惯性"——即便冲击减弱，观念转变仍会持续一段时间。D10后热度归零，观点完全固化在57.29，系统达到稳定状态。</p>
+      <p><strong>示例文本分布：</strong>前10天覆盖了新闻和社媒的典型话语，从事实报道（2024新闻）到阴谋论（2026 X），体现了舆论场中信息类型的多样性。D11后文本循环重复，反映无新信息输入。</p>
+      <p><strong>模型收敛机制：</strong>在无新冲击的情况下，Deffuant模型中个体间的观点交互逐渐使群体趋向共识或极化。本仿真中，置信边界ε=0.25意味着只有观点差距小于25的个体才会相互影响，收敛速率μ=0.4决定了每次交互的接近程度。最终群体稳定在57.29，偏离中性线（50）约7.3个单位，表明事件冲击导致了显著的立场偏移。</p>
+      <p><strong>方法学意义：</strong>该仿真将真实热度数据作为外生冲击注入Deffuant模型，实现了"数据驱动"的舆论动力学模拟。相比纯统计描述，仿真模型能够揭示舆论演化的因果机制——热度冲击如何通过个体间的社会交互被放大并固化为群体立场。这为舆情预警和干预策略提供了量化工具。</p>
+    </div>
+  </section>
+
+  <!-- 语言特征分析 -->
+  <section class="section" id="language">
+    <h2 class="section-title">语言特征分析</h2>
+    <p class="section-subtitle">基于LIWC（Linguistic Inquiry and Word Count）的跨平台语言风格对比</p>
+
+    <!-- 核心指标卡片 -->
+    <div class="card-grid animate-item animate-up" style="margin-top:0;">
+      <div class="card card-3d"><div class="card-label">新闻 Analytic</div><div class="card-value count-up" data-target="94" data-suffix="+">0</div><div class="content-text">分析性思维极高，逻辑严密、正式规范</div></div>
+      <div class="card card-3d"><div class="card-label">X平台 Analytic</div><div class="card-value count-up" data-target="67" data-suffix="+">0</div><div class="content-text">分析性思维偏低，直觉叙事、口语化表达</div></div>
+      <div class="card card-3d"><div class="card-label">新闻 Clout</div><div class="card-value count-up" data-target="48" data-suffix="+">0</div><div class="content-text">社会地位中等，保持客观中立姿态</div></div>
+      <div class="card card-3d"><div class="card-label">X平台 Clout</div><div class="card-value count-up" data-target="10" data-suffix="+">0</div><div class="content-text">社会地位极低，个人化、情绪化表达</div></div>
+    </div>
+
+    <!-- LIWC五维雷达图对比 -->
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">📰 新闻媒体 LIWC 语言轮廓</div><div id="chartLiwcNews" style="width:100%;height:420px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">🐦 X平台 LIWC 语言轮廓</div><div id="chartLiwcX" style="width:100%;height:420px;"></div></div>
+    </div>
+
+    <!-- 四数据集对比柱状图 -->
+    <div class="chart-container full animate-item animate-up" style="margin-bottom:30px;">
+      <div class="chart-title">四数据集语言特征对比（归一化雷达图）</div>
+      <div id="chartLiwcCompare" style="width:100%;height:480px;"></div>
+    </div>
+
+    <!-- 文本长度对比 -->
+    <div class="chart-row">
+      <div class="chart-container animate-item"><div class="chart-title">平均文本长度对比</div><div id="chartWordCount" style="width:100%;height:380px;"></div></div>
+      <div class="chart-container animate-item animate-right"><div class="chart-title">Analytic vs Clout 散点分布</div><div id="chartLiwcScatter" style="width:100%;height:380px;"></div></div>
+    </div>
+
+    <!-- 解读按钮 -->
+    <button class="insight-toggle ripple-btn" data-target="insightLanguage"><span class="arrow">▼</span> 📝 查看语言特征深度解读</button>
+    <div class="insight-panel" id="insightLanguage">
+      <h4>📝 LIWC 语言特征深度解读</h4>
+      <p><strong>Analytic（分析性思维）：</strong>新闻媒体在两个年份均保持极高的Analytic得分（94.38 vs 93.81），表明新闻报道以逻辑推理、因果关系和正式语言为主。相比之下，X平台的Analytic得分显著降低（68.19 vs 65.93），说明社交媒体文本更偏向直觉性、叙事性和口语化表达。跨年对比显示新闻媒体的Analytic略有下降（-0.57），X平台也微降（-2.26），可能反映第二次事件报道中情感化叙事增多。</p>
+      <p><strong>Clout（社会地位/自信度）：</strong>这是最显著的跨平台差异维度。新闻媒体Clout得分约48-49，处于中等水平，反映了新闻机构作为"第三方观察者"的客观中立姿态。而X平台的Clout极低（8.34 vs 10.93），表明社交媒体用户以第一人称、情绪化、非权威的口吻发言。值得注意的是，2026年X平台Clout略有上升（+2.59），可能与阴谋论话语中"揭露真相"的自信姿态有关。</p>
+      <p><strong>Authentic（真实性）：</strong>新闻媒体Authentic得分较高（92.96 vs 94.52），说明新闻文本相对真诚、较少掩饰。X平台Authentic得分明显较低（73.29 vs 75.77），反映社交媒体中存在更多表演性、策略性表达。2026年两个平台的Authentic均略有上升，可能暗示在第二次事件后，各信源都更倾向于"说真话"——新闻更透明，社媒更激进。</p>
+      <p><strong>Tone（情绪基调）：</strong>四个数据集的Tone得分均在51-52之间，接近中性线（50），说明整体情绪基调偏中性略积极。跨年变化极小（新闻从52.19→52.22，X从52.25→51.27），表明枪击事件虽然引发强烈舆论反应，但在语言层面并未导致系统性的情绪极化。X平台2026年Tone微降（-0.98），与阴谋论和质疑话语增多一致。</p>
+      <p><strong>Word Count（文本长度）：</strong>新闻媒体平均长度约850-900词，符合深度报道特征。X平台仅27-38词，体现碎片化表达。2026年新闻长度略有增加（+49.5词），可能与第二次事件涉及更多制度问责内容有关；X平台长度也增加（+10.4词），反映小样本下长帖（阴谋论长文）拉高均值。</p>
+      <p><strong>方法学意义：</strong>LIWC语言特征分析揭示了"平台即体裁"的深层规律——新闻与社交媒体在语言认知风格上存在结构性鸿沟。新闻媒体是"高分析-中权威-高真实"的 institutional voice，而社交媒体是"低分析-低权威-中真实"的 personal voice。这一发现对跨平台舆情监测具有重要启示：同一事件在不同平台上的话语建构遵循截然不同的语言逻辑，简单的文本聚合会掩盖这种深层差异。</p>
+    </div>
+  </section>
+
+  <!-- 结论 + 深度研判 + 负面事件时间线 -->
+  <section class="section" id="conclusion">
+    <h2 class="section-title">结论</h2>
+    <p class="section-subtitle">研究问题回答与核心发现总结</p>
+    <div class="rq-box animate-item"><div class="rq-label">RQ1 时序模式差异</div><div class="rq-text">新闻媒体遵循“24h内达峰—逐日衰减”的经典突发事件报道周期，2026年峰值较2024年下降44%，热度窗口长度相近。社交媒体热度模式则更复杂：2024年X平台热度高峰滞后10天，与后续政治议程共振；2026年X平台恢复即时响应但绝对热度缩水98.7%。总体支持“重复袭击事件中舆论注意力边际递减”的假设，且社交媒体对短期政治议程的依赖远高于新闻媒体。</div></div>
+    <div class="rq-box animate-item delay-2"><div class="rq-label">RQ2 议题框架迁移</div><div class="rq-text">话语重心从“集会-竞选-英雄主义”全面转向“白宫-安保-制度问责”，特朗普的语义邻居从“rally”、“republican”替换为“white house”、“security”、“dinner”，标志着其公众形象从“受害者/斗士”向“责任者/问题中心”的根本转变。桑基图清晰展示了流量从“特勤局核心”向“晚宴核心”和“政治暴力”议题的迁移，社交媒体上阴谋论叙事成为新的边缘话语簇。</div></div>
+    <div class="rq-box animate-item delay-3"><div class="rq-label">RQ3 情感与态度演化</div><div class="rq-text">信任维度下降21%，厌恶维度翻倍，恐惧和愤怒情绪在社交媒体上显著上升，呈现“信任衰减、厌恶上升、焦虑扩散”的情感漂移趋势。新闻媒体的情绪结构相对稳定，社交媒体则充当情绪放大器，两极分化明显。态度测量显示净相似度始终为负，但2024年X平台负向偏斜最大(-0.136)，新闻媒体负向偏斜轻微恶化(-0.008→-0.036)，证实了态度层面的缓慢负面迁移。</div></div>
+    <div class="rq-box animate-item delay-4"><div class="rq-label">RQ4 弱信号与风险预警</div><div class="rq-text">2026年X平台出现以“staged”、“fake”、“deep state”为核心的阴谋论话语簇，WSS分数极高，唤醒度中等，愉悦度极低。这些低频但突发集中的词汇构成明确的早期风险信号，提示舆情治理部门需建立弱信号监测机制，防范阴谋论从边缘向主流的渗透。</div></div>
+
+    <!-- 深度研判 -->
+    <div class="subsection-title animate-item delay-1" style="margin-top:60px;">深度研判：形象转变、阴谋论土壤与媒介生态</div>
+
+    <!-- 负面事件时间线图 -->
+    <div class="chart-container full animate-item animate-up" style="margin-bottom:30px;">
+      <div class="chart-title">📅 特朗普上任后负面事件时间线（2025-2026年）与支持率变化</div>
+      <div id="timelineNegative" style="width:100%;height:400px;"></div>
+    </div>
+
+    <div class="analysis-text animate-item">
+      <h4>📌 为什么特朗普上任后形象从“受害者”转向“责任者”？</h4>
+      <p>2024年枪击发生时，特朗普处于“在野挑战者”身份，公众天然对遭受暴力的候选人产生同情，加之其即时反应（挥拳、呼喊“战斗”）极具戏剧性，媒体将之塑造为“坚忍领袖”。而2026年枪击时，特朗普已是当权总统，公众对他的审视标准从“勇气”转向“治理能力”。事件暴露的白宫安保漏洞、应急响应迟缓等问题，直接与总统职责挂钩。再加上此时他正面临国会弹劾调查（涉嫌滥用职权、妨碍司法），舆论场中的“责任归因”迅速从外部袭击者转向内部制度失守。因此，同一人物的同类型事件，因政治身份和语境切换，舆论框架发生了质变。</p>
+      <p>上方的“负面事件时间线”直观展示了2025年至2026年期间特朗普政府遭遇的连续危机：从内阁成员频繁更迭、弹劾程序启动、空袭伊朗引发争议，到边境移民危机恶化、白宫内部泄密风波，以及民调支持率持续走低。这些事件累积削弱了公众对特朗普治理能力的信任，使得2026年枪击事件成为“压垮骆驼的最后一根稻草”，舆论焦点自然从“受害者同情”转为“制度问责”。</p>
+      <h4>🧩 阴谋论为何在2026年集中爆发？</h4>
+      <p>美国的阴谋论文化有深厚土壤：从“肯尼迪遇刺案”到“9·11真相运动”，对官方叙事的质疑一直是边缘话语的常态。2026年枪击事件的特殊性在于：1）发生在核心安保区域（白宫希尔顿），更容易激发“内部人作案”或“自导自演”的猜想；2）特朗普本人长期指责“深层政府”（deep state）和“假新闻”，其支持者本就对官方信息持怀疑态度；3）社交媒体算法助长了极端内容的传播，带有“staged”、“false flag”等标签的推文在72小时内获得不成比例的热度。此外，事件发生后官方信息发布滞后，形成了“信息真空”，阴谋论借此填补，形成自我强化的话语簇。这说明在危机沟通中，及时、透明的信息披露是遏制谣言的关键。</p>
+      <h4>📺 媒介对领导人形象的作用：从电视到社交媒体的演变</h4>
+      <p>美国政治史上，媒体形态一直深度参与领导人形象建构。1960年肯尼迪与尼克松的电视辩论，是“电视形象”首次超越政策主张影响选举的标志性事件——收音机听众认为尼克松获胜，而电视观众（看到尼克松紧张出汗、肯尼迪从容自信）则倒向肯尼迪。里根作为“伟大沟通者”，充分利用电视黄金时段发表演讲，塑造了“强硬但亲切”的总统形象。特朗普则开创了“社交媒体总统”模式，通过Twitter（现X）直接与支持者对话，绕过传统媒体过滤。这种媒介环境赋予他前所未有的叙事控制力，但也放大了极化与阴谋论：任何官方信息都可能被对立阵营解构为“谎言”。两次枪击事件的舆论差异，本质上是特朗普从“电视时代遗泽”向“社交媒体反噬”过渡的缩影。未来领导人需同时掌握传统媒体的话语重量和新媒体的即时互动，并在危机中建立跨平台的事实核查网络。</p>
+      <p>综上，枪击事件不仅是暴力插曲，更是美国政治极化、媒介生态变迁和公众情感漂移的浓缩样本。本报告为理解当代政治传播中的“受害—责任”叙事转换提供了量化依据，也为危机舆情管理给出了预警指标。</p>
+    </div>
+
+    <div class="analysis-text animate-item" style="margin-top:30px;"><h4>总体结论</h4><p>综合以上多维度分析，围绕特朗普的舆论形象经历了从<strong style="color:#911f27;">“受害者—领袖捍卫”</strong>向<strong style="color:#fac694;">“责任人—制度审视”</strong>的持续性漂移，情感格局呈现信任收缩与厌弃上升的双轨趋势，社交媒体环境中更自由的边缘叙事表达则加剧了这一漂移的异质性与风险性。从舆情生命周期看，重复性事件的新闻价值衰减明显，但社会媒体上的阴谋论风险却在上升。这提示未来的危机传播管理应当：1) 建立跨平台、跨年度的情感基线监测；2) 对社交媒体上的高唤醒、负效价弱信号进行实时追踪；3) 针对“受害者—责任人”叙事迁移，准备差异化的事实核查和框架调整策略。本研究的局限性在于X平台2026年样本量偏小，部分测量（如态度净相似度）可能受稀疏性影响，后续可补充更多社交平台数据（如Reddit、Telegram）进行交叉验证。</p></div>
+    <div class="image-box animate-item animate-up delay-2" style="text-align:center; margin:30px 0;">
+      <img src="https://i.ibb.co/G3p4zj9D/2.png" alt="特朗普肖像" loading="lazy" style="max-width:100%; border-radius:20px;">
+    </div>
+    <div class="footer-credit">制作人：胡咏仪 · 舆情分析报告 | 数据驱动深度洞察</div>
+  </section>
+</div>
+
+<!-- 滚动进度条 -->
+<div class="scroll-progress"><div class="scroll-progress-bar" id="progressBar"></div></div>
+<!-- 返回顶部 -->
+<button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+<!-- 主题切换 -->
+<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+<!-- 汉堡菜单 -->
+<button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="page-nav">
+  <button id="prevBtn" class="ripple-btn" title="上一页">←</button>
+  <button id="nextBtn" class="ripple-btn" title="下一页">→</button>
+</div>
+
+<script>
+  (function() {
+    const C1 = '#911f27', C2 = '#fac694', C1L = '#b33a40', C2L = '#fcd4a8';
+    const SECTIONS = ['cover','events','intro','data','heat','data-samples','topic','emotion','weak','vad','attitude','network','simulation','language','conclusion'];
+
+    // 安全获取元素，过滤掉不存在的
+    const sectionEls = SECTIONS.map(id => document.getElementById(id)).filter(el => el !== null);
+    let currentIdx = 0;
+
+    function scrollTo(idx) {
+      if (idx < 0) idx = 0;
+      if (idx >= sectionEls.length) idx = sectionEls.length - 1;
+      currentIdx = idx;
+      if (sectionEls[idx]) sectionEls[idx].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.onclick = () => scrollTo(currentIdx - 1);
+    if (nextBtn) nextBtn.onclick = () => scrollTo(currentIdx + 1);
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        scrollTo(currentIdx + 1);
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollTo(currentIdx - 1);
+      }
+    });
+
+    // 导航点击
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.onclick = (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('data-target');
+        const idx = SECTIONS.indexOf(targetId);
+        if (idx !== -1) {
+          const el = document.getElementById(targetId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            currentIdx = idx;
+          }
+        }
+      };
+    });
+
+    // 滚动动画 - 完整版，无截断
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const section = entry.target;
+          // 为动画元素添加 visible 类，触发 CSS 动画（备用方案）
+          section.classList.add('visible');
+          const animatedItems = section.querySelectorAll('.animate-item, .animate-right, .animate-up, .section-title, .section-subtitle, .subsection-title');
+          animatedItems.forEach(el => el.classList.add('animate-in'));
+          section.querySelectorAll('.card, .chart-container, .analysis-text, .image-box img, .two-col-img img, .timeline-node, .data-table tr, .sample-card').forEach(el => el.classList.add('animate-in'));
+        }
+      });
+    }, { threshold: 0.2 });
+
+    // 观察所有 .section 元素
+    document.querySelectorAll('.section').forEach(section => {
+      observer.observe(section);
+    });
+
+    // 典型数据阅读按钮交互
+    document.querySelectorAll('.btn-toggle').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const fullDiv = document.getElementById(targetId);
+        if (fullDiv) {
+          if (fullDiv.classList.contains('show')) {
+            fullDiv.classList.remove('show');
+            this.textContent = '📄 查看原文';
+          } else {
+            fullDiv.classList.add('show');
+            this.textContent = '📄 收起原文';
+          }
+        }
+      });
+    });
+
+    // 图表初始化函数
+    function initChart(id) {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const c = echarts.init(el);
+      window.addEventListener('resize', () => c.resize());
+      return c;
+    }
+
+    // ===== 图表逐点绘制动画引擎 =====
+    // 用法：animateChart(chart, fullOption, interval)
+    // chart: echarts实例, fullOption: 完整配置, interval: 每个点间隔(ms)
+    function animateChart(chart, fullOption, interval) {
+      if (!chart) return;
+      interval = interval || 150;
+      // 提取所有series的完整数据
+      const allSeriesData = fullOption.series.map(s => {
+        if (Array.isArray(s.data)) return [...s.data];
+        return null;
+      });
+      // 初始化空数据
+      const emptyOption = JSON.parse(JSON.stringify(fullOption));
+      emptyOption.series.forEach((s, i) => {
+        if (allSeriesData[i] !== null) {
+          s.data = [];
+          // 保留markPoint但清空数据
+          if (s.markPoint) {
+            s.markPoint.data = [];
+          }
+        }
+      });
+      chart.setOption(emptyOption);
+      // 逐点添加
+      const maxLen = Math.max(...allSeriesData.map(d => d ? d.length : 0));
+      let step = 0;
+      const timer = setInterval(() => {
+        if (step >= maxLen) {
+          clearInterval(timer);
+          // 最后一步确保所有数据和markPoint都显示
+          fullOption.series.forEach((s, i) => {
+            if (allSeriesData[i] !== null) {
+              s.data = allSeriesData[i];
+            }
+          });
+          chart.setOption(fullOption);
+          return;
+        }
+        const partialOption = { series: [] };
+        fullOption.series.forEach((s, i) => {
+          if (allSeriesData[i] !== null && step < allSeriesData[i].length) {
+            const newSeriesData = allSeriesData[i].slice(0, step + 1);
+            const seriesUpdate = { data: newSeriesData };
+            // markPoint: 只显示已到达的数据点对应的markPoint
+            if (s.markPoint && s.markPoint.data) {
+              const visibleMarks = s.markPoint.data.filter(mp => {
+                const coord = mp.coord;
+                return coord && coord[0] <= step;
+              });
+              seriesUpdate.markPoint = { ...s.markPoint, data: visibleMarks };
+            }
+            partialOption.series.push(seriesUpdate);
+          } else {
+            partialOption.series.push({});
+          }
+        });
+        chart.setOption(partialOption);
+        step++;
+      }, interval);
+    }
+
+    // ===== 图表进入视口时触发逐点动画 =====
+    // 用法：initChartWithAnimation(chartId, option, interval)
+    // chartId: 图表容器DOM id, option: 完整echarts配置, interval: 每个点间隔(ms)
+    function initChartWithAnimation(chartId, option, interval) {
+      const el = document.getElementById(chartId);
+      if (!el) return;
+      const chart = echarts.init(el);
+      window.addEventListener('resize', () => chart.resize());
+      // 用IntersectionObserver检测图表容器进入视口
+      const chartObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateChart(chart, option, interval);
+            chartObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      chartObserver.observe(el);
+    }
+
+    // 样式：无边框，淡红加粗斜体，米色背景，宽度200px，多行自动换行
+    const labelStyle = {
+      show: true,
+      formatter: '{b}',
+      position: 'top',
+      backgroundColor: '#fef4e0',
+      borderWidth: 0,
+      color: '#d9534f',
+      fontStyle: 'italic',
+      fontWeight: 'bold',
+      padding: [6, 12, 6, 12],
+      borderRadius: 12,
+      fontSize: 12,
+      maxWidth: 200,
+      overflow: 'break'
+    };
+
+    // 以下为所有图表初始化，确保每个图表的容器存在
+    // 2024新闻热度图 - 进入视口时触发逐点绘制
+    initChartWithAnimation('chartHeat2024N', {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, transitionDuration: 300 },
+      xAxis: { type: 'category', data: ['D0/D1','D2','D3','D4','D5','D6','D7','D8','D9'], name: '相对天数' },
+      yAxis: { type: 'value', name: '报道数量' },
+      series: [{
+        type: 'line', data: [182,592,478,365,298,220,150,96,0], smooth: 0.3,
+        areaStyle: { color: C1+'40' }, lineStyle: { color: C1, width: 3 },
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+        markPoint: {
+            data: [
+              { coord: [0,182], name: '枪击发生\n拜登声明“暴力在美国没有立足之地”\n特勤局确认1死2重伤\n欧尔班、内塔尼亚胡等国际政要谴责', value: 182, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [1,592], name: 'FBI定性“暗杀未遂”\n司法部长动用全部资源调查\n共和党全国委员会声明“特朗普不会停止战斗”', value: 592, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [2,478], name: '众议院议长约翰逊宣布国会全面调查\n特勤局局长被要求到国会作证', value: 478, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } }
+            ],
+            label: { show: false },
+            emphasis: { label: labelStyle }
+          }
+        }]
+    }, 400);
+
+    // 2026新闻热度图 - 进入视口时触发逐点绘制
+    initChartWithAnimation('chartHeat2026N', {
+      tooltip: { trigger: 'axis', transitionDuration: 300 },
+      xAxis: { type: 'category', data: ['D0','D1','D2','D3','D4','D5','D6','D7','D8'], name: '相对天数' },
+      yAxis: { type: 'value', name: '报道数量' },
+      series: [{
+        type: 'line', data: [66,300,331,206,128,86,35,22,0], smooth: 0.3,
+        areaStyle: { color: C1L+'40' }, lineStyle: { color: C1L, width: 3 },
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+        markPoint: {
+            data: [
+              { coord: [0,66], name: '枪击发生\n特朗普Truth Social发文，称特勤局英勇，将举行发布会\n白宫确认枪手意图刺杀', value: 66, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [1,300], name: '特朗普发布会称枪手“激进”“病态”\n副总统万斯率先撤离\n安保漏洞引发质疑', value: 300, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [2,331], name: '代理司法部长布兰奇称“这不是安保漏洞，是巨大的安全成功”\n国会调查启动\n英法以韩领导人表态谴责', value: 331, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [3,206], name: '特朗普接受《60分钟》专访：“我不担心，我们生活在一个疯狂的世界”', value: 206, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } }
+            ],
+            label: { show: false },
+            emphasis: { label: labelStyle }
+          }
+        }]
+    }, 400);
+
+    // 2024 X热度图 - 进入视口时触发逐点绘制
+    initChartWithAnimation('chartHeat2024X', {
+      tooltip: { trigger: 'axis', transitionDuration: 300 },
+      xAxis: { type: 'category', data: ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','D14'], name: '相对天数' },
+      yAxis: { type: 'value', name: '推文数量' },
+      series: [{
+        type: 'line', data: [0,0,0,0,6800,10965,8200,6009,4500,3200,2100,1500,900,500], smooth: 0.3,
+        areaStyle: { color: C2+'40' }, lineStyle: { color: C2, width: 3 },
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+        markPoint: {
+            data: [
+              { coord: [4,6800], name: '热度初现', value: 6800, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [5,10965], name: 'RNC大会，特朗普正式接受提名', value: 10965, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [6,8200], name: '拜登宣布退选', value: 8200, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } }
+            ],
+            label: { show: false },
+            emphasis: { label: labelStyle }
+          },
+          markArea: { data: [[{ xAxis: 0 }, { xAxis: 3 }]], itemStyle: { color: 'rgba(0,0,0,0.05)', label: { show: false } } }
+        }]
+    }, 400);
+
+    // 2026 X热度图 - 进入视口时触发逐点绘制
+    initChartWithAnimation('chartHeat2026X', {
+      tooltip: { trigger: 'axis', transitionDuration: 300 },
+      xAxis: { type: 'category', data: ['D1','D2','D3','D4','D5','D6','D7','D8','D9'], name: '相对天数' },
+      yAxis: { type: 'value', name: '推文数量' },
+      series: [{
+        type: 'line', data: [41,58,132,88,50,35,28,18,6], smooth: 0.3,
+        areaStyle: { color: C2L+'40' }, lineStyle: { color: C2L, width: 3 },
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+        markPoint: {
+            data: [
+              { coord: [1,58], name: '枪击发生，特朗普Truth Social发文', value: 58, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [2,132], name: '“staged”阴谋论迅速发酵\n21%选民、1/3共和党人认为FBI是2024暗杀未遂幕后黑手', value: 132, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+              { coord: [3,88], name: '特勤局官员称“安保计划奏效”\n枪手宣言公开', value: 88, symbol: 'circle', symbolSize: 12, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } }
+            ],
+            label: { show: false },
+            emphasis: { label: labelStyle }
+          }
+        }]
+    }, 400);
+
+    // 负面事件时间线图 - 进入视口时触发逐点绘制
+    initChartWithAnimation('timelineNegative', {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, transitionDuration: 300 },
+      xAxis: { type: 'category', data: ['2025.02','2025.05','2025.06','2025.06','2025.08','2025.09','2025.11','2025.12','2026.02','2026.04.25前'], name: '时间' },
+      yAxis: [{ type: 'value', name: '负面事件强度', min: 0, max: 10 }, { type: 'value', name: '支持率 (%)', min: 30, max: 50 }],
+      series: [
+        {
+          name: '负面事件强度', type: 'line', data: [6, 7, 8, 8, 7, 6, 8, 7, 9, 9.5], smooth: 0.3,
+          lineStyle: { color: C1L, width: 3 }, areaStyle: { color: C1L+'30' },
+          animationDuration: 600,
+          animationEasing: 'cubicOut',
+            markPoint: {
+              data: [
+                { coord: [0,6], name: '内阁成员频繁更迭（商务、内政部长辞职）', value: 6, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [1,7], name: '众议员Thanedar发起第三次弹劾程序', value: 7, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [2,8], name: '特朗普下令空袭伊朗核设施\n民主党提弹劾动议（众议院344:79否决）', value: 8, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [4,7], name: '边境移民危机恶化', value: 7, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [6,8], name: '众议院司法委员会通过弹劾条款', value: 8, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [7,7], name: '众议院搁置弹劾动议\n但53%美国人认为特朗普让政府运作变糟', value: 7, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } },
+                { coord: [8,9], name: '白宫内部泄密风波，多名幕僚被解职', value: 9, symbol: 'circle', symbolSize: 10, itemStyle: { color: C1L, borderColor: '#fff', borderWidth: 2 } }
+              ],
+              label: { show: false },
+              emphasis: { label: labelStyle }
+            }
+          },
+          {
+            name: '特朗普支持率 (%)', type: 'line', data: [44, 42, 41, 41, 42, 41, 40, 39, 38, 35], smooth: 0.3,
+            lineStyle: { color: C2, width: 2, type: 'dashed' }, yAxisIndex: 1,
+            animationDuration: 600,
+            animationEasing: 'cubicOut',
+            markPoint: {
+              data: [
+                { coord: [2,41], name: '伊朗空袭后支持率降至41%', value: 41, symbol: 'circle', symbolSize: 8, itemStyle: { color: C2, borderColor: '#fff', borderWidth: 1 } },
+                { coord: [4,42], name: '边境危机后支持率从47%降至42%', value: 42, symbol: 'circle', symbolSize: 8, itemStyle: { color: C2, borderColor: '#fff', borderWidth: 1 } },
+                { coord: [9,35], name: '枪击前支持率跌至34-37%', value: 35, symbol: 'circle', symbolSize: 8, itemStyle: { color: C2, borderColor: '#fff', borderWidth: 1 } }
+              ],
+              label: { show: false },
+              emphasis: { label: { show: true, formatter: '{b} : {c}%', backgroundColor: '#fef4e0', borderWidth: 0, color: '#d9534f', fontStyle: 'italic', fontWeight: 'bold', padding: [4, 8, 4, 8], borderRadius: 8, maxWidth: 200, overflow: 'break' } }
+            }
+          }
+        ]
+    }, 500);
+
+    // 其余图表初始化（与之前相同）
+    initChart('chartTopicBubble2024')?.setOption({ tooltip:{formatter:p=>`${p.data[4]}<br/>文档:${p.data[2]} 占比:${p.data[3]}%`, transitionDuration: 300}, xAxis:{type:'value'}, yAxis:{type:'value'}, series:[{type:'scatter',symbolSize:d=>Math.sqrt(d[2])*3, data:[[0,906,906,36.5,'特勤局核心'],[1,147,147,5.9,'RNC大会'],[2,78,78,3.1,'Vance'],[3,54,54,2.2,'消防员哀悼'],[4,42,42,1.7,'马斯克'],[5,34,34,1.4,'关税'],[7,25,25,1.0,'MSNBC'],[8,24,24,1.0,'RFK']], itemStyle:{color:C2,shadowBlur:10}, animation: true, animationDuration: 1200, animationEasing: 'cubicOut', animationDelay: function(idx) { return idx * 250; }, animationDelayUpdate: function(idx) { return idx * 250; }}] });
+    initChart('chartTopicBubble2026')?.setOption({ tooltip:{transitionDuration: 300}, xAxis:{}, yAxis:{}, series:[{type:'scatter',symbolSize:d=>Math.sqrt(d[2])*3, data:[[0,292,292,25.3,'晚宴核心'],[1,129,129,11.2,'政治暴力'],[2,128,128,11.1,'Kimmel争议'],[3,83,83,7.2,'英王访美'],[4,58,58,5.0,'宴会厅安防'],[5,30,30,2.6,'伊朗紧张'],[6,28,28,2.4,'CBS'],[9,18,18,1.6,'Allen背景']], itemStyle:{color:C1,shadowBlur:10}, animation: true, animationDuration: 1200, animationEasing: 'cubicOut', animationDelay: function(idx) { return idx * 250; }, animationDelayUpdate: function(idx) { return idx * 250; }}] });
+    initChart('chartTopicSankey')?.setOption({ tooltip:{trigger:'item', transitionDuration: 300}, series:[{ type:'sankey', layout:'none', emphasis:{focus:'adjacency'}, nodeWidth:20, nodeGap:12, lineStyle:{ color:'source', curveness:0.5, opacity:0.8 }, animationDuration: 3500, animationEasing: 'cubicOut', data:[{name:'2024核心',itemStyle:{color:C1}},{name:'2024RNC',itemStyle:{color:C2}},{name:'2024Vance',itemStyle:{color:C1L}},{name:'2024消防员',itemStyle:{color:'#b86e5a'}},{name:'2024马斯克',itemStyle:{color:'#e8c47a'}},{name:'2024X核心',itemStyle:{color:'#5a1519'}},{name:'2026晚宴核心',itemStyle:{color:C1}},{name:'2026政治暴力',itemStyle:{color:C2}},{name:'2026宴会厅',itemStyle:{color:C1L}},{name:'2026Kimmel',itemStyle:{color:'#e8c47a'}},{name:'2026X情感',itemStyle:{color:'#b86e5a'}},{name:'2026X阴谋',itemStyle:{color:'#5a1519'}}], links:[{source:'2024核心',target:'2026晚宴核心',value:380},{source:'2024核心',target:'2026宴会厅',value:180},{source:'2024核心',target:'2026政治暴力',value:140},{source:'2024RNC',target:'2026政治暴力',value:80},{source:'2024RNC',target:'2026Kimmel',value:40},{source:'2024Vance',target:'2026政治暴力',value:30},{source:'2024消防员',target:'2026晚宴核心',value:20},{source:'2024马斯克',target:'2026Kimmel',value:25},{source:'2024X核心',target:'2026X情感',value:120},{source:'2024X核心',target:'2026X阴谋',value:80},{source:'2024X核心',target:'2026晚宴核心',value:200}] }] });
+    function radarWithHover(chart, values, color) { chart?.setOption({ radar: { indicator: [{name:'愤怒',max:2},{name:'期待',max:2},{name:'厌恶',max:0.5},{name:'恐惧',max:1.2},{name:'喜悦',max:1.5},{name:'悲伤',max:0.6},{name:'惊讶',max:0.4},{name:'信任',max:2}], center:['50%','50%'], radius:'65%', name:{textStyle:{color:'#6b4c3b',fontSize:11}} }, series: [{ type:'radar', data:[{value:values}], areaStyle:{color:color+'20'}, lineStyle:{color:color,width:2}, label:{show:false}, emphasis: { scale: true, label: { show: true, fontWeight: 'bold', fontSize: 14 } }, animation: true, animationDuration: 2500, animationEasing: 'cubicOut', animationDelay: function(idx) { return idx * 200; } }], tooltip: { trigger: 'item', transitionDuration: 300, formatter: (params) => { if(params.componentType === 'series') return `${params.marker} ${params.seriesName}<br/>${params.value.map((v,i)=>`${['愤怒','期待','厌恶','恐惧','喜悦','悲伤','惊讶','信任'][i]}: ${v}`).join('<br/>')}`; return ''; } }, animation: true }); }
+    radarWithHover(initChart('chartEmo2024N'), [1.44,1.81,0.19,0.91,1.25,0.38,0.25,1.51], C1);
+    radarWithHover(initChart('chartEmo2026N'), [1.19,1.89,0.36,0.76,0.90,0.17,0.21,1.19], C2);
+    initChart('chartEmoStack')?.setOption({ tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, transitionDuration: 300}, legend:{}, xAxis:{data:['愤怒','期待','厌恶','恐惧','喜悦','悲伤','惊讶','信任']}, yAxis:{}, series:[{name:'2024新闻',type:'bar',stack:'t',data:[1.44,1.81,0.19,0.91,1.25,0.38,0.25,1.51],itemStyle:{color:C1},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }},{name:'2026新闻',type:'bar',stack:'t',data:[1.19,1.89,0.36,0.76,0.90,0.17,0.21,1.19],itemStyle:{color:C1L},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }},{name:'2024X',type:'bar',stack:'t',data:[0.03,0.05,0.01,0.02,0.05,0.01,0.01,0.03],itemStyle:{color:C2},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }},{name:'2026X',type:'bar',stack:'t',data:[0.28,0.34,0.13,0.24,0.13,0.07,0.02,0.34],itemStyle:{color:C2L},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }}] });
+    const weakData = [[1.84,4.0,85,'shooting'],[1.51,3.35,77,'trump'],[2.75,4.44,76,'staged'],[1.75,3.7,74,'fake'],[2.68,3.53,68,'deep state'],[1.95,2.9,62,'coverup'],[2.2,3.1,59,'false flag']];
+    const weakColors = [C1, C1L, '#d96c4e', '#c95a42', '#e89b6e', '#f4b883', '#b86e5a'];
+    initChart('chartWeakBubble')?.setOption({ tooltip:{trigger:'item', transitionDuration: 300, formatter:p=>`${p.data[3]}<br/>CV:${p.data[0]}<br/>Z-score:${p.data[1]}<br/>WSS:${p.data[2]}`}, xAxis:{type:'value',name:'CV'}, yAxis:{type:'value',name:'Z-score'}, series:[{ type:'scatter', symbolSize:d=>Math.min(d[2]*0.5+8,45), data:weakData, label:{show:false}, itemStyle:{ color: (param)=> weakColors[param.dataIndex % weakColors.length] }, emphasis: { scale: 1.2, label: { show: true, formatter: p => p.data[3] } }, animation: true, animationDuration: 1200, animationEasing: 'cubicOut', animationDelay: function(idx) { return idx * 250; }, animationDelayUpdate: function(idx) { return idx * 250; } }] });
+    const vadColors = ['#911f27','#b33a40','#fac694','#e89b6e','#c95a42','#f4b883','#d96c4e','#b86e5a'];
+    initChart('chartVAD3D')?.setOption({ tooltip:{transitionDuration: 300, formatter:p=>`${p.data[4]}<br/>V:${p.data[0]} A:${p.data[1]} D:${p.data[2]}`}, xAxis3D:{name:'Valence'}, yAxis3D:{name:'Arousal'}, zAxis3D:{name:'Dominance'}, grid3D:{viewControl:{autoRotate:true}}, series:[{type:'scatter3D',data:[[0.095,0.031,0.126,85,'shooting'],[0.095,0.031,0.126,77,'trump'],[0.095,0.031,0.126,76,'staged'],[0.095,0.031,0.126,74,'fake'],[0.095,0.051,0.115,72,'assassination'],[0.090,0.041,0.130,68,'deep state'],[0.095,0.009,0.126,63,'false flag'],[0.112,-0.013,0.114,63,'ballroom']], symbolSize:d=>Math.max(d[3]*0.5,10), itemStyle:{ color: (param)=> vadColors[param.dataIndex % vadColors.length], opacity:0.9 }, emphasis: { scale: 1.2, label: { show: true } }, animation: true, animationDuration: 1200, animationEasing: 'cubicOut', animationDelay: function(idx) { return idx * 250; }, animationDelayUpdate: function(idx) { return idx * 250; } }] });
+    initChart('chartAttSim')?.setOption({ tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, transitionDuration: 300}, xAxis:{data:['2024新闻','2026新闻','2024X','2026X']}, yAxis:{}, series:[{name:'正向',type:'bar',data:[0.388,0.374,0.373,0.759],itemStyle:{color:C2},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }},{name:'负向',type:'bar',data:[0.396,0.410,0.509,0.764],itemStyle:{color:C1},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }}] });
+    initChart('chartAttNet')?.setOption({ tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, transitionDuration: 300}, xAxis:{data:['2024新闻','2026新闻','2024X','2026X']}, yAxis:{}, series:[{type:'bar',data:[-0.008,-0.036,-0.136,-0.005],itemStyle:{color:p=>p.dataIndex===2?C1:C1L},label:{show:false}, animation: true, animationEasing: 'elasticOut', animationDuration: 2500, animationDelay: function(idx) { return idx * 350; }, animationDelayUpdate: function(idx) { return idx * 80; }}] });
+    function makeNet(id, nodes, edges) { const chart = initChart(id); if(!chart) return; const maxDeg = Math.max(...nodes.map(n=>n.degree)); const nodeData = nodes.map(n=>({ name:n.name, symbolSize:12+(n.degree/maxDeg)*32, degree:n.degree, itemStyle:{ color:n.name==='trump'?'#dc2626':C2 } })); const links = edges.map(e=>({ source:e.source, target:e.target, lineStyle:{ width:Math.min(5,1+e.weight*0.8), color:C2 }, value:e.weight })); chart.setOption({ tooltip:{ trigger:'item', transitionDuration: 300, formatter:(p)=>p.dataType==='node'?`${p.name}<br/>度中心性:${p.data.degree}`:`${p.data.source}→${p.data.target}<br/>权重:${p.data.value}` }, series:[{ type:'graph', layout:'force', roam:true, force:{repulsion:500,edgeLength:100,gravity:0.1,initIterations:300}, lineStyle:{color:'source',curveness:0.2,opacity:0.8}, label:{show:true,fontSize:11,position:'right'}, data:nodeData, links:links, animation:true, animationDurationUpdate: 2500, animationEasingUpdate: 'cubicInOut', animationDuration: 3500, animationEasing: 'cubicOut', emphasis:{scale:true,label:{show:true,fontWeight:'bold'}} }] }); }
+    makeNet('chartNet2024N', [{name:'trump',degree:92},{name:'president',degree:51},{name:'rally',degree:32},{name:'republican',degree:28},{name:'shooting',degree:26},{name:'assassination',degree:18},{name:'biden',degree:22}], [{source:'trump',target:'president',weight:8},{source:'trump',target:'rally',weight:6},{source:'trump',target:'republican',weight:5},{source:'president',target:'shooting',weight:4},{source:'shooting',target:'assassination',weight:3},{source:'rally',target:'republican',weight:4}]);
+    makeNet('chartNet2026N', [{name:'trump',degree:57},{name:'white',degree:36},{name:'house',degree:32},{name:'security',degree:28},{name:'dinner',degree:24},{name:'president',degree:30},{name:'allen',degree:18}], [{source:'trump',target:'white',weight:7},{source:'trump',target:'house',weight:6},{source:'trump',target:'security',weight:5},{source:'white',target:'dinner',weight:4},{source:'house',target:'security',weight:4},{source:'allen',target:'dinner',weight:3}]);
+    makeNet('chartNet2024X', [{name:'trump',degree:61},{name:'shooting',degree:43},{name:'president',degree:29},{name:'secret',degree:18},{name:'service',degree:16},{name:'video',degree:12}], [{source:'trump',target:'shooting',weight:9},{source:'trump',target:'secret',weight:5},{source:'shooting',target:'secret',weight:4},{source:'secret',target:'service',weight:3},{source:'president',target:'trump',weight:6}]);
+    makeNet('chartNet2026X', [{name:'trump',degree:32},{name:'staged',degree:28},{name:'fake',degree:26},{name:'deep',degree:24},{name:'allen',degree:22},{name:'coverup',degree:20}], [{source:'trump',target:'staged',weight:7},{source:'staged',target:'fake',weight:6},{source:'fake',target:'deep',weight:5},{source:'trump',target:'allen',weight:4},{source:'allen',target:'coverup',weight:3}]);
+
+    // ===== 舆论动力学仿真图表 =====
+    (function initSimulationChart() {
+      const simData = {"day_labels":["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","D24","D25","D26","D27","D28","D29","D30"],"avg_opinions":[48.64,49.56,50.75,53.49,55.03,55.87,56.45,56.9,57.2,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29,57.29],"heat_volume":[41,58,132,88,50,35,28,18,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"event_intensity":[0.311,0.439,1.0,0.667,0.379,0.265,0.212,0.136,0.045,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"sample_texts":["FBI investigates assassination attempt on Trump.","Witnesses describe chaotic scene at rally.","Shooting at White House Correspondents' Dinner. Trump evacuated.","Secret Service under scrutiny after security breach at WHCA dinner.","Allen Cole identified as shooter, manifesto found.","OMG this is insane!!! #Trump #Shooting","I can't believe this. So scary! #MAGA","Thoughts and prayers for Trump. \ud83c\uddfa\ud83c\uddf8","Staged? Fake? Deep state? Let's discuss. \ud83d\udd2b","This is a false flag operation. #WakeUp","Trump just used the shooting to sell his illegal ballroom.","Trump rally shooting in Butler, Pennsylvania. Former president injured but safe.","FBI investigates assassination attempt on Trump.","Witnesses describe chaotic scene at rally.","Shooting at White House Correspondents' Dinner. Trump evacuated.","Secret Service under scrutiny after security breach at WHCA dinner.","Allen Cole identified as shooter, manifesto found.","OMG this is insane!!! #Trump #Shooting","I can't believe this. So scary! #MAGA","Thoughts and prayers for Trump. \ud83c\uddfa\ud83c\uddf8","Staged? Fake? Deep state? Let's discuss. \ud83d\udd2b","This is a false flag operation. #WakeUp","Trump just used the shooting to sell his illegal ballroom.","Trump rally shooting in Butler, Pennsylvania. Former president injured but safe.","FBI investigates assassination attempt on Trump.","Witnesses describe chaotic scene at rally.","Shooting at White House Correspondents' Dinner. Trump evacuated.","Secret Service under scrutiny after security breach at WHCA dinner.","Allen Cole identified as shooter, manifesto found.","OMG this is insane!!! #Trump #Shooting"]};
+
+      const simOption = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'cross' },
+          transitionDuration: 300,
+          formatter: function(params) {
+            const idx = params[0].dataIndex;
+            const day = simData.day_labels[idx];
+            const avg = simData.avg_opinions[idx];
+            const heat = simData.heat_volume[idx];
+            const text = simData.sample_texts[idx] || '\u6682\u65e0\u6587\u672c';
+            // 更新底部文本展示
+            const sampleEl = document.getElementById('simSampleText');
+            if (sampleEl) sampleEl.innerText = text;
+            return '<strong style="color:#911f27">' + day + '</strong><br/>\ud83d\udcca \u5e73\u5747\u89c2\u70b9: <strong>' + avg.toFixed(2) + '</strong><br/>\ud83d\udd25 \u70ed\u5ea6: <strong>' + heat + '</strong><br/>\ud83d\udcdd <em style="color:#6b4c3b">"' + text + '"</em>';
+          }
+        },
+        legend: {
+          data: ['\u5e73\u5747\u8206\u8bba\u7acb\u573a', '\u65e5\u70ed\u5ea6'],
+          top: 10,
+          textStyle: { color: '#6b4c3b' }
+        },
+        grid: { left: 60, right: 60, bottom: 40, top: 60 },
+        xAxis: {
+          type: 'category',
+          data: simData.day_labels,
+          name: '\u65f6\u95f4 (\u76f8\u5bf9\u5929\u6570)',
+          nameTextStyle: { color: '#6b4c3b' },
+          axisLabel: { rotate: 30, color: '#6b4c3b' }
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '\u8206\u8bba\u7acb\u573a (0~100)',
+            min: 40, max: 65,
+            nameTextStyle: { color: '#6b4c3b' },
+            axisLine: { show: true, lineStyle: { color: '#911f27' } },
+            axisLabel: { color: '#6b4c3b' }
+          },
+          {
+            type: 'value',
+            name: '\u70ed\u5ea6',
+            min: 0,
+            nameTextStyle: { color: '#6b4c3b' },
+            axisLine: { show: true, lineStyle: { color: '#fac694' } },
+            splitLine: { show: false },
+            axisLabel: { color: '#6b4c3b' }
+          }
+        ],
+        series: [
+          {
+            name: '\u5e73\u5747\u8206\u8bba\u7acb\u573a',
+            type: 'line',
+            data: simData.avg_opinions,
+            smooth: 0.3,
+            symbol: 'circle',
+            symbolSize: 8,
+            lineStyle: { color: C1, width: 3 },
+            itemStyle: { color: C1 },
+            areaStyle: { color: C1 + '20' },
+            animationDuration: 600,
+            animationEasing: 'cubicOut',
+            markPoint: {
+              data: [
+                { type: 'max', name: '\u8206\u8bba\u5cf0\u503c', symbolSize: 14, itemStyle: { color: C1L } },
+                { type: 'min', name: '\u8206\u8bba\u8d77\u70b9', symbolSize: 14, itemStyle: { color: C2 } }
+              ],
+              label: { color: '#2c1810', fontWeight: 'bold' }
+            },
+            markLine: {
+              data: [
+                { yAxis: 50, label: { formatter: '\u4e2d\u6027\u7acb\u573a', color: '#999', fontSize: 11 } }
+              ],
+              lineStyle: { color: '#ccc', type: 'dashed' }
+            },
+            markArea: {
+              data: [[
+                { xAxis: 'D1', itemStyle: { color: 'rgba(145,31,39,0.06)' }, label: { show: true, formatter: '\u5feb\u901f\u4e0a\u5347\u671f', position: 'insideTop', color: '#911f27', fontSize: 11, fontWeight: 'bold' } },
+                { xAxis: 'D5' }
+              ]],
+              silent: true
+            },
+            emphasis: { focus: 'series', itemStyle: { color: C1L, borderWidth: 2 } }
+          },
+          {
+            name: '\u65e5\u70ed\u5ea6',
+            type: 'bar',
+            yAxisIndex: 1,
+            data: simData.heat_volume,
+            itemStyle: {
+              color: function(params) {
+                // 热度越高颜色越深
+                const val = params.value / 132;
+                return val > 0.8 ? C1 : val > 0.4 ? C1L : C2;
+              },
+              borderRadius: [3, 3, 0, 0]
+            },
+            barWidth: '40%',
+            animationEasing: 'elasticOut',
+            animationDuration: 2500,
+            animationDelay: function(idx) { return idx * 80; },
+            emphasis: { itemStyle: { color: '#b86e5a' } }
+          }
+        ]
+      };
+
+      // 使用视口触发动画初始化
+      initChartWithAnimation('chartSimulation', simOption, 120);
+    })();
+
+    // ===== LIWC语言特征分析图表 =====
+    (function initLiwcCharts() {
+      const C1 = '#911f27', C2 = '#fac694', C1L = '#b33a40', C2L = '#fcd4a8';
+
+      // 数据
+      const liwcData = {
+        news2024: { Analytic: 94.38, Clout: 48.27, Authentic: 92.96, Tone: 52.19, word_count: 849.35 },
+        news2026: { Analytic: 93.81, Clout: 48.89, Authentic: 94.52, Tone: 52.22, word_count: 898.88 },
+        x2024:    { Analytic: 68.19, Clout: 8.34,  Authentic: 73.29, Tone: 52.25, word_count: 27.38 },
+        x2026:    { Analytic: 65.93, Clout: 10.93, Authentic: 75.77, Tone: 51.27, word_count: 37.75 }
+      };
+
+      // 1. 新闻媒体雷达图
+      const liwcNews = initChart('chartLiwcNews');
+      if (liwcNews) {
+        liwcNews.setOption({
+          tooltip: { trigger: 'item', transitionDuration: 300 },
+          legend: { data: ['2024新闻', '2026新闻'], top: 10, textStyle: { color: '#6b4c3b' } },
+          radar: {
+            indicator: [
+              { name: 'Analytic\n分析性', max: 100 },
+              { name: 'Clout\n社会地位', max: 100 },
+              { name: 'Authentic\n真实性', max: 100 },
+              { name: 'Tone\n情绪基调', max: 100 }
+            ],
+            center: ['50%', '55%'], radius: '60%',
+            name: { textStyle: { color: '#6b4c3b', fontSize: 11 } },
+            splitArea: { areaStyle: { color: ['rgba(145,31,39,0.02)', 'rgba(145,31,39,0.05)'] } }
+          },
+          series: [{
+            type: 'radar',
+            data: [
+              { value: [94.38, 48.27, 92.96, 52.19], name: '2024新闻', areaStyle: { color: C1 + '25' }, lineStyle: { color: C1, width: 2 }, itemStyle: { color: C1 } },
+              { value: [93.81, 48.89, 94.52, 52.22], name: '2026新闻', areaStyle: { color: C1L + '25' }, lineStyle: { color: C1L, width: 2, type: 'dashed' }, itemStyle: { color: C1L } }
+            ],
+            animation: true, animationDuration: 2500, animationEasing: 'cubicOut',
+            animationDelay: function(idx) { return idx * 200; }
+          }]
+        });
+      }
+
+      // 2. X平台雷达图
+      const liwcX = initChart('chartLiwcX');
+      if (liwcX) {
+        liwcX.setOption({
+          tooltip: { trigger: 'item', transitionDuration: 300 },
+          legend: { data: ['2024 X', '2026 X'], top: 10, textStyle: { color: '#6b4c3b' } },
+          radar: {
+            indicator: [
+              { name: 'Analytic\n分析性', max: 100 },
+              { name: 'Clout\n社会地位', max: 100 },
+              { name: 'Authentic\n真实性', max: 100 },
+              { name: 'Tone\n情绪基调', max: 100 }
+            ],
+            center: ['50%', '55%'], radius: '60%',
+            name: { textStyle: { color: '#6b4c3b', fontSize: 11 } },
+            splitArea: { areaStyle: { color: ['rgba(250,198,148,0.05)', 'rgba(250,198,148,0.1)'] } }
+          },
+          series: [{
+            type: 'radar',
+            data: [
+              { value: [68.19, 8.34, 73.29, 52.25], name: '2024 X', areaStyle: { color: C2 + '30' }, lineStyle: { color: C2, width: 2 }, itemStyle: { color: C2 } },
+              { value: [65.93, 10.93, 75.77, 51.27], name: '2026 X', areaStyle: { color: '#b86e5a30' }, lineStyle: { color: '#b86e5a', width: 2, type: 'dashed' }, itemStyle: { color: '#b86e5a' } }
+            ],
+            animation: true, animationDuration: 2500, animationEasing: 'cubicOut',
+            animationDelay: function(idx) { return idx * 200; }
+          }]
+        });
+      }
+
+      // 3. 四数据集对比雷达图
+      const liwcCompare = initChart('chartLiwcCompare');
+      if (liwcCompare) {
+        liwcCompare.setOption({
+          tooltip: { trigger: 'item', transitionDuration: 300 },
+          legend: { data: ['2024新闻', '2026新闻', '2024 X', '2026 X'], bottom: 0, textStyle: { color: '#6b4c3b' } },
+          radar: {
+            indicator: [
+              { name: 'Analytic\n分析性', max: 100 },
+              { name: 'Clout\n社会地位', max: 100 },
+              { name: 'Authentic\n真实性', max: 100 },
+              { name: 'Tone\n情绪基调', max: 100 }
+            ],
+            center: ['50%', '48%'], radius: '58%',
+            name: { textStyle: { color: '#6b4c3b', fontSize: 12 } },
+            splitArea: { areaStyle: { color: ['rgba(145,31,39,0.02)', 'rgba(145,31,39,0.05)', 'rgba(145,31,39,0.08)'] } }
+          },
+          series: [{
+            type: 'radar',
+            data: [
+              { value: [94.38, 48.27, 92.96, 52.19], name: '2024新闻', areaStyle: { color: C1 + '18' }, lineStyle: { color: C1, width: 2.5 }, itemStyle: { color: C1 } },
+              { value: [93.81, 48.89, 94.52, 52.22], name: '2026新闻', areaStyle: { color: C1L + '18' }, lineStyle: { color: C1L, width: 2.5, type: 'dashed' }, itemStyle: { color: C1L } },
+              { value: [68.19, 8.34, 73.29, 52.25], name: '2024 X', areaStyle: { color: C2 + '22' }, lineStyle: { color: C2, width: 2.5 }, itemStyle: { color: C2 } },
+              { value: [65.93, 10.93, 75.77, 51.27], name: '2026 X', areaStyle: { color: '#b86e5a22' }, lineStyle: { color: '#b86e5a', width: 2.5, type: 'dashed' }, itemStyle: { color: '#b86e5a' } }
+            ],
+            animation: true, animationDuration: 3000, animationEasing: 'cubicOut',
+            animationDelay: function(idx) { return idx * 250; }
+          }]
+        });
+      }
+
+      // 4. 文本长度对比柱状图
+      const wordCount = initChart('chartWordCount');
+      if (wordCount) {
+        wordCount.setOption({
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, transitionDuration: 300 },
+          xAxis: { type: 'category', data: ['2024新闻', '2026新闻', '2024 X', '2026 X'], axisLabel: { color: '#6b4c3b' } },
+          yAxis: { type: 'value', name: '平均词数', nameTextStyle: { color: '#6b4c3b' }, axisLabel: { color: '#6b4c3b' } },
+          series: [{
+            type: 'bar',
+            data: [
+              { value: 849.35, itemStyle: { color: C1 } },
+              { value: 898.88, itemStyle: { color: C1L } },
+              { value: 27.38, itemStyle: { color: C2 } },
+              { value: 37.75, itemStyle: { color: '#b86e5a' } }
+            ],
+            barWidth: '50%',
+            label: { show: true, position: 'top', formatter: '{c}', color: '#6b4c3b', fontWeight: 'bold' },
+            animation: true, animationEasing: 'elasticOut', animationDuration: 2500,
+            animationDelay: function(idx) { return idx * 350; }
+          }]
+        });
+      }
+
+      // 5. Analytic vs Clout 散点图
+      const liwcScatter = initChart('chartLiwcScatter');
+      if (liwcScatter) {
+        liwcScatter.setOption({
+          tooltip: {
+            trigger: 'item',
+            transitionDuration: 300,
+            formatter: function(p) {
+              return '<strong style="color:' + p.color + '">' + p.data[3] + '</strong><br/>Analytic: ' + p.data[0] + '<br/>Clout: ' + p.data[1] + '<br/>Authentic: ' + p.data[2];
+            }
+          },
+          xAxis: { type: 'value', name: 'Analytic (分析性)', min: 50, max: 100, nameTextStyle: { color: '#6b4c3b' }, axisLabel: { color: '#6b4c3b' } },
+          yAxis: { type: 'value', name: 'Clout (社会地位)', min: 0, max: 60, nameTextStyle: { color: '#6b4c3b' }, axisLabel: { color: '#6b4c3b' } },
+          series: [{
+            type: 'scatter',
+            symbolSize: function(d) { return Math.sqrt(d[2]) * 3; },
+            data: [
+              [94.38, 48.27, 92.96, '2024新闻'],
+              [93.81, 48.89, 94.52, '2026新闻'],
+              [68.19, 8.34, 73.29, '2024 X'],
+              [65.93, 10.93, 75.77, '2026 X']
+            ],
+            itemStyle: {
+              color: function(p) {
+                const colors = [C1, C1L, C2, '#b86e5a'];
+                return colors[p.dataIndex % colors.length];
+              },
+              shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.2)'
+            },
+            label: { show: true, formatter: '{@3}', position: 'right', color: '#6b4c3b', fontWeight: 'bold', fontSize: 12, distance: 10 },
+            animation: true, animationDuration: 2000, animationEasing: 'cubicOut',
+            animationDelay: function(idx) { return idx * 300; }
+          }],
+          markLine: {
+            silent: true,
+            data: [
+              { xAxis: 80, lineStyle: { color: '#ccc', type: 'dashed' }, label: { formatter: '新闻 vs X平台分界线', color: '#999', fontSize: 10 } }
+            ]
+          }
+        });
+      }
+    })();
+
+    // ===== 1. 粒子背景动画 =====
+    (function initParticles() {
+      const canvas = document.getElementById('particleCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const PARTICLE_COUNT = 60;
+      function resize() {
+        const section = canvas.parentElement;
+        canvas.width = section.offsetWidth;
+        canvas.height = section.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      class Particle {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 2 + 0.5;
+          this.speedX = (Math.random() - 0.5) * 0.5;
+          this.speedY = (Math.random() - 0.5) * 0.5;
+          this.opacity = Math.random() * 0.5 + 0.1;
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(250, 198, 148, ${this.opacity})`;
+          ctx.fill();
+        }
+      }
+      for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        // 绘制连线
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(250, 198, 148, ${0.15 * (1 - dist / 120)})`;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+      // ===== 解读面板切换交互 =====
+    document.querySelectorAll('.insight-toggle').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const panel = document.getElementById(targetId);
+        if (!panel) return;
+        const isOpen = panel.classList.contains('open');
+        panel.classList.toggle('open');
+        this.classList.toggle('active');
+        // 更新按钮文字
+        const originalText = this.textContent.trim();
+        if (isOpen) {
+          this.innerHTML = this.innerHTML.replace('收起', '查看');
+        } else {
+          this.innerHTML = this.innerHTML.replace('查看', '收起');
+        }
+        // 平滑滚动到面板位置
+        if (!isOpen) {
+          setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
+      });
+    });
+  })();
+
+    // ===== 2. 滚动进度条 =====
+    (function initScrollProgress() {
+      const bar = document.getElementById('progressBar');
+      if (!bar) return;
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        bar.style.width = progress + '%';
+      });
+    })();
+
+    // ===== 3. 数字计数动画 =====
+    (function initCountUp() {
+      const counters = document.querySelectorAll('.count-up');
+      const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.getAttribute('data-target'));
+            const suffix = el.getAttribute('data-suffix') || '';
+            const duration = 2000;
+            const startTime = performance.now();
+            function update(currentTime) {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+              const current = Math.floor(eased * target);
+              el.textContent = current.toLocaleString() + suffix;
+              if (progress < 1) requestAnimationFrame(update);
+              else el.textContent = target.toLocaleString() + suffix;
+            }
+            requestAnimationFrame(update);
+            countObserver.unobserve(el);
+          }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(c => countObserver.observe(c));
+    })();
+
+    // ===== 4. 卡片3D倾斜效果 =====
+    (function initCard3D() {
+      document.querySelectorAll('.card-3d').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = (y - centerY) / centerY * -5;
+          const rotateY = (x - centerX) / centerX * 5;
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+        });
+      });
+    })();
+
+    // ===== 5. 涟漪按钮效果 =====
+    (function initRipple() {
+      document.querySelectorAll('.ripple-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          const rect = this.getBoundingClientRect();
+          const ripple = document.createElement('span');
+          ripple.className = 'ripple';
+          const size = Math.max(rect.width, rect.height);
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+          ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+          this.appendChild(ripple);
+          setTimeout(() => ripple.remove(), 600);
+        });
+      });
+    })();
+
+    // ===== 6. 返回顶部按钮 =====
+    (function initBackToTop() {
+      const btn = document.getElementById('backToTop');
+      if (!btn) return;
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+      });
+      btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    })();
+
+    // ===== 7. 主题切换 =====
+    (function initThemeToggle() {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        btn.textContent = '☀️';
+      }
+      btn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        btn.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        // 重新初始化图表以适应主题
+        document.querySelectorAll('[id^="chart"]').forEach(el => {
+          if (el._echarts_instance) {
+            const chart = echarts.getInstanceByDom(el);
+            if (chart) chart.resize();
+          }
+        });
+      });
+    })();
+
+    // ===== 8. 汉堡菜单 =====
+    (function initHamburger() {
+      const hamburger = document.getElementById('hamburger');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (!hamburger || !sidebar) return;
+      hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('active');
+      });
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          hamburger.classList.remove('active');
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+        });
+      }
+      // 点击导航项后关闭菜单
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+          if (window.innerWidth <= 1024) {
+            hamburger.classList.remove('active');
+            sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+          }
+        });
+      });
+    })();
+
+    // ===== 9. 打字机效果（封面标题） =====
+    (function initTypewriter() {
+      const titleEl = document.querySelector('.cover-title');
+      if (!titleEl) return;
+      const originalHTML = titleEl.innerHTML;
+      const text = titleEl.textContent;
+      titleEl.textContent = '';
+      titleEl.style.minHeight = '1.3em';
+      const cursor = document.createElement('span');
+      cursor.className = 'typewriter-cursor';
+      titleEl.appendChild(cursor);
+      let i = 0;
+      const lines = text.split('\n');
+      let fullText = '';
+      let lineIdx = 0;
+      let charIdx = 0;
+      function type() {
+        if (lineIdx >= lines.length) {
+          cursor.remove();
+          return;
+        }
+        if (charIdx < lines[lineIdx].length) {
+          fullText += lines[lineIdx][charIdx];
+          charIdx++;
+          // 重建内容（保留br标签）
+          let displayText = '';
+          for (let l = 0; l <= lineIdx; l++) {
+            if (l > 0) displayText += '<br>';
+            if (l < lineIdx) displayText += lines[l];
+            else displayText += lines[l].substring(0, charIdx);
+          }
+          titleEl.innerHTML = displayText;
+          titleEl.appendChild(cursor);
+          setTimeout(type, 80 + Math.random() * 40);
+        } else {
+          lineIdx++;
+          charIdx = 0;
+          if (lineIdx < lines.length) {
+            setTimeout(type, 300);
+          } else {
+            cursor.remove();
+          }
+        }
+      }
+      // 延迟启动
+      setTimeout(type, 800);
+    })();
+
+    // ===== 10. 事件回顾section的滚动观察 =====
+    (function initEventsObserver() {
+      const eventsSection = document.querySelector('.events-section');
+      if (!eventsSection) return;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            eventsSection.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(eventsSection);
+    })();
+
+    // ===== 11. 图片视差效果 =====
+    (function initParallax() {
+      const images = document.querySelectorAll('.parallax-img, .two-col-img img, .image-box img');
+      // 仅在非触屏设备上启用
+      if ('ontouchstart' in window) return;
+      images.forEach(img => {
+        if (!img.classList.contains('parallax-img')) img.classList.add('parallax-img');
+        img.addEventListener('mousemove', (e) => {
+          const rect = img.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+          img.style.transform = `scale(1.02) translate(${x * -10}px, ${y * -10}px)`;
+        });
+        img.addEventListener('mouseleave', () => {
+          img.style.transform = 'scale(1) translate(0, 0)';
+        });
+      });
+    })();
+
+    // ===== 12. 键盘快捷键提示（按T切换主题） =====
+    (function initKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 't' || e.key === 'T') {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          const btn = document.getElementById('themeToggle');
+          if (btn) btn.click();
+        }
+      });
+    })();
+
+    // ===== 图表数据切换动画（退场+入场） =====
+    function animateChartDataTransition(chart, newOption, duration) {
+      if (!chart) return;
+      duration = duration || 600;
+      // 先淡出当前数据
+      chart.setOption({
+        series: chart.getOption().series.map(s => ({
+          ...s,
+          animation: true,
+          animationDuration: duration,
+          animationEasing: 'cubicIn',
+          data: s.data.map(d => {
+            if (typeof d === 'object' && d !== null) return { ...d, itemStyle: { opacity: 0.1 } };
+            return d;
+          })
+        }))
+      });
+      // 延迟后更新为新数据
+      setTimeout(() => {
+        chart.setOption(newOption, true);
+      }, duration);
+    }
+
+    // ===== 图例高亮反向操作（悬停淡化其他） =====
+    function addLegendHighlightEffect(chart) {
+      if (!chart) return;
+      chart.on('mouseover', function(params) {
+        if (params.componentType === 'series') {
+          chart.setOption({
+            series: chart.getOption().series.map((s, idx) => ({
+              ...s,
+              lineStyle: { opacity: idx === params.seriesIndex ? 1 : 0.15, width: idx === params.seriesIndex ? 3 : 1 },
+              itemStyle: { opacity: idx === params.seriesIndex ? 1 : 0.15 }
+            }))
+          });
+        }
+      });
+      chart.on('mouseout', function() {
+        chart.setOption({
+          series: chart.getOption().series.map(s => ({
+            ...s,
+            lineStyle: { opacity: 1, width: 2 },
+            itemStyle: { opacity: 1 }
+          }))
+        });
+      });
+    }
+
+    // 为折线图添加图例高亮效果
+    [heat2024N, heat2026N, heat2024X, heat2026X, timelineNeg].forEach(chart => addLegendHighlightEffect(chart));
+
+    // ===== 图表轮播控制 =====
+    (function initCarousel() {
+      const carousels = {};
+      document.querySelectorAll('[data-carousel]').forEach(btn => {
+        const name = btn.getAttribute('data-carousel');
+        const dir = btn.getAttribute('data-dir');
+        btn.addEventListener('click', () => {
+          // 热度分析轮播
+          if (name === 'heat') {
+            const groups = [
+              ['chartHeat2024N', 'chartHeat2026N'],
+              ['chartHeat2024X', 'chartHeat2026X']
+            ];
+            let current = carousels.heat || 0;
+            if (dir === 'next') current = (current + 1) % groups.length;
+            else current = (current - 1 + groups.length) % groups.length;
+            carousels.heat = current;
+            // 更新指示器
+            const indicator = document.getElementById('heatCarouselIndicator');
+            if (indicator) indicator.textContent = (current + 1) + ' / ' + groups.length;
+            // 切换显示
+            groups.forEach((group, idx) => {
+              group.forEach(id => {
+                const container = document.getElementById(id)?.closest('.chart-container');
+                if (container) {
+                  if (idx === current) {
+                    container.style.display = 'block';
+                    container.style.opacity = '0';
+                    container.style.transform = 'translateX(' + (dir === 'next' ? '50px' : '-50px') + ')';
+                    setTimeout(() => {
+                      container.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                      container.style.opacity = '1';
+                      container.style.transform = 'translateX(0)';
+                    }, 50);
+                    // resize图表
+                    const chart = echarts.getInstanceByDom(document.getElementById(id));
+                    if (chart) chart.resize();
+                  } else {
+                    container.style.transition = 'all 0.4s ease';
+                    container.style.opacity = '0';
+                    container.style.transform = 'translateX(' + (dir === 'next' ? '-50px' : '50px') + ')';
+                    setTimeout(() => { container.style.display = 'none'; }, 400);
+                  }
+                }
+              });
+            });
+          }
+        });
+      });
+    })();
+  })();
+</script>
+</body>
+</html>
